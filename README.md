@@ -30,7 +30,7 @@ npx next build
 برای گیت‌هاب پیجز این مخزن، مسیر پایه `/hezartoo` است:
 
 ```bash
-NEXT_PUBLIC_BASE_PATH=/hezartoo npx next build
+STATIC_EXPORT=1 NEXT_PUBLIC_BASE_PATH=/hezartoo npx next build
 ```
 
 گردش‌کار `.github/workflows/pages.yml` همین ساخت را روی شاخه‌ی `main` انجام می‌دهد و به گیت‌هاب پیجز می‌فرستد.

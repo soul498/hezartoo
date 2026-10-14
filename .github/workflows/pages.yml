@@ -27,6 +27,7 @@ jobs:
       - run: npx next build
         env:
           NEXT_PUBLIC_BASE_PATH: /hezartoo
+          STATIC_EXPORT: "1"
       - uses: actions/upload-pages-artifact@v3
         with:
           path: ./out

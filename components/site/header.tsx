@@ -37,7 +37,7 @@ export function Header() {
             target="_blank"
             rel="noreferrer"
             variant="outline"
-            className="hidden h-11 sm:inline-flex"
+            className="h-11 max-sm:hidden"
           >
             اینستاگرام
           </ButtonLink>

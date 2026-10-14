@@ -199,9 +199,7 @@ export function HomePage() {
       </Dialog>
 
       {process.env.NODE_ENV !== "production" ? (
-        <aside className="fixed bottom-4 start-4 z-30 rounded-control border border-border bg-card px-3 py-2 text-sm text-muted-foreground">
-          پیش‌نمایش محلی · اتاق: {room}
-        </aside>
+        <p className="px-4 pb-6 text-center text-sm text-muted-foreground">پیش‌نمایش محلی · اتاق: {room}</p>
       ) : null}
     </>
   );
