@@ -2,7 +2,8 @@ import { sections, type Leaf, type Section, type SectionId } from "@/lib/content
 
 /**
  * The whole site is one map. Each page is a room on a grid; one unit is one viewport.
- * Sections sit one step from the hub in their direction, leaves one step further out.
+ * Sections sit two steps from the hub in their direction and their leaves one step around
+ * them on the free arms of the same cross, so the map repeats the pattern every page draws.
  */
 export type Vec = { x: number; y: number };
 
@@ -12,24 +13,24 @@ export type Room =
   | { kind: "leaf"; path: string; pos: Vec; label: string; short: string; section: Section; leaf: Leaf };
 
 const sectionPos: Record<SectionId, Vec> = {
-  events: { x: 0, y: -1 },
-  about: { x: 0, y: 1 },
-  education: { x: -1, y: 0 },
-  product: { x: 1, y: 0 },
+  events: { x: 0, y: -2 },
+  about: { x: 0, y: 2 },
+  education: { x: -2, y: 0 },
+  product: { x: 2, y: 0 },
 };
 
-/** Physical grid cells, chosen so no two rooms overlap. */
+/** One step from the section on an arm of its cross that does not lead back to the hub. */
 const leafPos: Record<string, Vec> = {
   "events/hoosh": { x: 1, y: -2 },
   "events/next": { x: -1, y: -2 },
   "about/intro": { x: 1, y: 2 },
-  "about/fields": { x: 0, y: 2 },
+  "about/fields": { x: 0, y: 3 },
   "about/contact": { x: -1, y: 2 },
   "education/vr": { x: -2, y: -1 },
-  "education/gamification": { x: -2, y: 0 },
+  "education/gamification": { x: -3, y: 0 },
   "education/partners": { x: -2, y: 1 },
   "product/neurotopia": { x: 2, y: -1 },
-  "product/anavia": { x: 2, y: 0 },
+  "product/anavia": { x: 3, y: 0 },
   "product/media": { x: 2, y: 1 },
 };
 
@@ -87,7 +88,9 @@ export function roomForPath(path: string): Room | undefined {
 export type Neighbor = { room: Room; role: "home" | "parent" | "child" | "sibling" };
 
 export function neighborsOf(room: Room): Neighbor[] {
-  if (room.kind === "hub") return [];
+  if (room.kind === "hub") {
+    return rooms.filter((r) => r.kind === "section").map((r): Neighbor => ({ room: r, role: "child" }));
+  }
   if (room.kind === "section") {
     return [
       { room: hubRoom, role: "home" },
@@ -115,3 +118,58 @@ export const mapLinks: [Room, Room][] = rooms.flatMap((room): [Room, Room][] => 
   }
   return [];
 });
+
+export type Placed = Neighbor & { slot: number };
+
+/** Even fan around a page's centre: never fewer than the four arms of a cross, slot 0 on top, clockwise. */
+export type Arrangement = { slots: number; placed: Placed[] };
+
+const weight: Record<Neighbor["role"], number> = { parent: 4, home: 2, child: 1, sibling: 1 };
+
+/** Clockwise angle from straight up, in screen coordinates (y grows downward). */
+function bearing(from: Vec, to: Vec) {
+  return Math.atan2(to.x - from.x, -(to.y - from.y));
+}
+
+function gap(a: number, b: number) {
+  const d = Math.abs(a - b) % (Math.PI * 2);
+  return d > Math.PI ? Math.PI * 2 - d : d;
+}
+
+/**
+ * Every page uses the same geometry: neighbours take the fan slots that point closest to where
+ * they lead on the map, return dots (parent, then «خانه») first, so a click pans the camera the
+ * way the dot points wherever the cross allows it.
+ */
+export function arrange(room: Room): Arrangement {
+  const neighbors = neighborsOf(room);
+  const slots = Math.max(4, neighbors.length);
+  const step = (Math.PI * 2) / slots;
+  const cost = neighbors.map((n) =>
+    Array.from({ length: slots }, (_, k) => weight[n.role] * gap(bearing(room.pos, n.room.pos), k * step)),
+  );
+
+  let best: number[] = [];
+  let bestCost = Infinity;
+  const pick: number[] = [];
+  const used = new Set<number>();
+  const walk = (i: number, total: number) => {
+    if (total >= bestCost - 1e-9) return;
+    if (i === neighbors.length) {
+      best = [...pick];
+      bestCost = total;
+      return;
+    }
+    for (let k = 0; k < slots; k += 1) {
+      if (used.has(k)) continue;
+      used.add(k);
+      pick.push(k);
+      walk(i + 1, total + cost[i][k]);
+      pick.pop();
+      used.delete(k);
+    }
+  };
+  walk(0, 0);
+
+  return { slots, placed: neighbors.map((n, i) => ({ ...n, slot: best[i] })) };
+}

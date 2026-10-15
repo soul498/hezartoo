@@ -192,61 +192,58 @@
   }
 }
 
-/* Full-screen stage: the node graph keeps its aspect ratio and fits the space left by the chrome. */
-.graph-stage-wrap {
-  container-type: size;
+/*
+ * Frameless centre of every page. Sizes are in em so the constellation can scale the whole
+ * block with one font-size to fit the space the dots leave free.
+ */
+.hero-fit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5em;
+  text-align: center;
 }
 
-.graph-stage {
-  width: min(100cqw, 100cqh * 0.75);
-  aspect-ratio: 3 / 4;
+.hero-fit-title {
+  font-size: 1.75em;
+  line-height: 1.25;
+  text-wrap: balance;
 }
 
-.hub-stage {
-  --hub-top: 11%;
-  --hub-side: 15%;
-  --hub-mid: 43%;
-  width: min(100cqw, 100cqh * 0.8);
-  aspect-ratio: 4 / 5;
+.hero-fit-text {
+  font-size: 1em;
+  line-height: 1.75;
+  text-wrap: pretty;
 }
 
-@media (min-width: 768px) {
-  .graph-stage {
-    width: min(100cqw, 100cqh * 1.5);
-    aspect-ratio: 3 / 2;
-  }
-
-  .hub-stage {
-    --hub-top: 12%;
-    --hub-side: 22%;
-    --hub-mid: 45%;
-  }
+.hero-fit-meta {
+  font-size: 0.8125em;
+  line-height: 1.5;
 }
 
-/* Landscape phones: little height, so stages go wide and the leaf graph sits beside its card. */
-@media (max-height: 32rem) {
-  .graph-stage {
-    width: min(100cqw, 100cqh * 2.4);
-    aspect-ratio: 12 / 5;
-  }
+.hero-fit-logo {
+  width: 7em;
+}
 
-  .hub-stage {
-    --hub-top: 11%;
-    --hub-side: 9%;
-    --hub-mid: 50%;
-    width: min(100cqw, 100cqh * 2.6);
-    aspect-ratio: 13 / 5;
-  }
+[data-orient="row"] > .hero-fit {
+  flex-direction: row;
+  gap: 1em;
+}
 
-  .leaf-graph {
-    position: sticky;
-    top: 0;
-    flex-shrink: 0;
-    width: auto;
-    max-width: none;
-    height: calc(100dvh - 7.5rem);
-    aspect-ratio: 3 / 2;
-  }
+[data-orient="row"] > .hero-fit .hero-fit-en {
+  align-items: flex-start;
+  text-align: left;
+}
+
+.hero-fit-mark {
+  font-size: 1.25em;
+  line-height: 1.3;
+}
+
+.hero-fit-tagline {
+  font-size: 0.8125em;
+  line-height: 1.5;
+  text-wrap: balance;
 }
 
 /* The camera over the room map. Pans between rooms; snaps under reduced motion. */

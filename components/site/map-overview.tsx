@@ -2,12 +2,17 @@
 
 import Link from "next/link";
 import { X } from "lucide-react";
-import type { CSSProperties } from "react";
-import { leafIcon, sectionIcons } from "@/components/site/icons";
-import { besideLabelClass } from "@/components/site/graph";
+import { useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 import { LogoMark } from "@/components/site/logo";
 import { cn } from "@/lib/utils";
-import { mapBounds, mapLinks, rooms, type Room, type Vec } from "@/lib/world";
+import {
+  hubRoom,
+  mapBounds,
+  mapLinks,
+  rooms,
+  type Room,
+  type Vec,
+} from "@/lib/world";
 
 /**
  * Space the overview keeps clear of: its title bar on top (shorter on short screens, matching
@@ -27,7 +32,10 @@ export const mapCenter: Vec = {
 
 /** Scale at which the whole map (one viewport per room) fits the free part of the screen. */
 export function fitMap(w: number, h: number) {
-  const s = Math.min((w - SIDE * 2) / (mapCols * w), (h - top(h) - BOTTOM - SIDE) / (mapRows * h));
+  const s = Math.min(
+    (w - SIDE * 2) / (mapCols * w),
+    (h - top(h) - BOTTOM - SIDE) / (mapRows * h),
+  );
   return { s, dy: (top(h) - BOTTOM) / 2 };
 }
 
@@ -39,6 +47,76 @@ function screenPos(room: Room, w: number, h: number): Vec {
     x: w / 2 + (room.pos.x - mapCenter.x) * cellW,
     y: h / 2 + dy + (room.pos.y - mapCenter.y) * h * s,
   };
+}
+
+type Side = "above" | "below" | "left" | "right";
+
+const labelStyle: Record<Side, CSSProperties> = {
+  above: { bottom: "100%", left: "50%", transform: "translateX(-50%)" },
+  below: { top: "100%", left: "50%", transform: "translateX(-50%)" },
+  right: { left: "100%", top: "50%", transform: "translateY(-50%)" },
+  left: { right: "100%", top: "50%", transform: "translateY(-50%)" },
+};
+
+const DOT = 22;
+
+function parentOf(room: Room): Room | null {
+  if (room.kind === "hub") return null;
+  if (room.kind === "section") return hubRoom;
+  return (
+    rooms.find(
+      (r) => r.kind === "section" && r.section.id === room.section.id,
+    ) ?? null
+  );
+}
+
+/**
+ * Same label rule as every page: a node above its parent is labelled above, every other node
+ * below. A label that would hit a dot, another label or the screen edge tries the sides next.
+ */
+function preference(room: Room): Side[] {
+  const parent = parentOf(room);
+  if (!parent) return ["below", "above", "right", "left"];
+  const dx = room.pos.x - parent.pos.x;
+  const dy = room.pos.y - parent.pos.y;
+  if (dy < 0 && Math.abs(dy) >= Math.abs(dx))
+    return ["above", "right", "left", "below"];
+  if (dx < 0 && Math.abs(dx) > Math.abs(dy))
+    return ["below", "above", "left", "right"];
+  if (dx > 0 && Math.abs(dx) > Math.abs(dy))
+    return ["below", "above", "right", "left"];
+  return ["below", "right", "left", "above"];
+}
+
+type Rect = { l: number; t: number; r: number; b: number };
+
+function labelRect(p: Vec, side: Side, lw: number, lh: number): Rect {
+  if (side === "above")
+    return {
+      l: p.x - lw / 2,
+      r: p.x + lw / 2,
+      t: p.y - DOT - lh,
+      b: p.y - DOT,
+    };
+  if (side === "below")
+    return {
+      l: p.x - lw / 2,
+      r: p.x + lw / 2,
+      t: p.y + DOT,
+      b: p.y + DOT + lh,
+    };
+  if (side === "right")
+    return {
+      l: p.x + DOT,
+      r: p.x + DOT + lw,
+      t: p.y - lh / 2,
+      b: p.y + lh / 2,
+    };
+  return { l: p.x - DOT - lw, r: p.x - DOT, t: p.y - lh / 2, b: p.y + lh / 2 };
+}
+
+function hits(a: Rect, b: Rect) {
+  return a.l < b.r && b.l < a.r && a.t < b.b && b.t < a.b;
 }
 
 export function MapOverview({
@@ -55,6 +133,51 @@ export function MapOverview({
   onClose: (restoreFocus: boolean) => void;
 }) {
   const at = new Map(rooms.map((room) => [room.path, screenPos(room, w, h)]));
+  const labelRefs = useRef<(HTMLSpanElement | null)[]>([]);
+  const [sides, setSides] = useState<Side[] | null>(null);
+
+  useLayoutEffect(() => {
+    const frame = requestAnimationFrame(() => placeLabels());
+    return () => cancelAnimationFrame(frame);
+
+    function placeLabels() {
+      const points = rooms.map((room) => screenPos(room, w, h));
+      const dots = points.map((p) => ({
+        l: p.x - DOT,
+        r: p.x + DOT,
+        t: p.y - DOT,
+        b: p.y + DOT,
+      }));
+      const bounds = { l: 4, r: w - 4, t: top(h) - 8, b: h - 4 };
+      const taken: Rect[] = [];
+      const order = rooms
+        .map((_, i) => i)
+        .sort((a, b) => rank(rooms[a]) - rank(rooms[b]));
+      const chosen: Side[] = rooms.map(() => "below");
+      for (const i of order) {
+        const el = labelRefs.current[i];
+        const lw = el?.offsetWidth ?? 0;
+        const lh = el?.offsetHeight ?? 0;
+        const prefs = preference(rooms[i]);
+        const free = prefs.find((side) => {
+          const r = labelRect(points[i], side, lw, lh);
+          const inside =
+            r.l >= bounds.l &&
+            r.r <= bounds.r &&
+            r.t >= bounds.t &&
+            r.b <= bounds.b;
+          return (
+            inside &&
+            !dots.some((d, j) => j !== i && hits(r, d)) &&
+            !taken.some((t) => hits(r, t))
+          );
+        });
+        chosen[i] = free ?? prefs[0];
+        taken.push(labelRect(points[i], chosen[i], lw, lh));
+      }
+      setSides(chosen);
+    }
+  }, [w, h]);
 
   return (
     <div
@@ -67,7 +190,9 @@ export function MapOverview({
       <div className="absolute inset-x-0 top-4 mx-auto flex h-16 w-full max-w-5xl items-center justify-between gap-4 px-4 short:top-0 short:h-12">
         <div className="flex min-w-0 flex-col">
           <p className="wordmark text-xl short:text-lg">نقشه‌ی کامل هزارتو</p>
-          <p className="truncate text-sm text-foreground/80 short:sr-only">روی هر گره بزنید تا دوربین به آن‌جا برود.</p>
+          <p className="truncate text-sm text-foreground/80 short:sr-only">
+            روی هر گره بزنید تا دوربین به آن‌جا برود.
+          </p>
         </div>
         <button
           type="button"
@@ -80,7 +205,10 @@ export function MapOverview({
         </button>
       </div>
 
-      <svg className="pointer-events-none absolute inset-0 size-full" aria-hidden="true">
+      <svg
+        className="pointer-events-none absolute inset-0 size-full"
+        aria-hidden="true"
+      >
         {mapLinks.map(([a, b]) => {
           const p = at.get(a.path)!;
           const q = at.get(b.path)!;
@@ -102,15 +230,10 @@ export function MapOverview({
         })}
       </svg>
 
-      {rooms.map((room) => {
+      {rooms.map((room, i) => {
         const p = at.get(room.path)!;
         const here = room.path === currentPath;
-        const Icon =
-          room.kind === "leaf"
-            ? leafIcon(room.section.id, room.leaf.slug)
-            : room.kind === "section"
-              ? sectionIcons[room.section.id]
-              : null;
+        const side = sides?.[i] ?? "below";
         return (
           <Link
             key={room.path}
@@ -127,30 +250,33 @@ export function MapOverview({
             style={{ left: p.x, top: p.y } as CSSProperties}
           >
             {here ? (
-              <span aria-hidden="true" className="graph-pulse absolute -inset-1 rounded-full border-2 border-brand" />
+              <span
+                aria-hidden="true"
+                className="graph-pulse absolute inset-0 rounded-full border-2 border-brand"
+              />
             ) : null}
-            <span
-              aria-hidden="true"
-              className={cn(
-                "grid place-items-center rounded-full transition-transform duration-(--motion) ease-motion group-hover:scale-110",
-                room.kind === "hub" && "size-11 overflow-hidden bg-brand",
-                room.kind === "section" && "size-10 bg-brand text-brand-foreground",
-                room.kind === "leaf" && "size-8 border-2 border-brand bg-background text-brand",
-              )}
-            >
-              {room.kind === "hub" ? (
+            {room.kind === "hub" ? (
+              <span
+                aria-hidden="true"
+                className="grid size-11 place-items-center overflow-hidden rounded-full bg-brand"
+              >
                 <LogoMark className="w-8" />
-              ) : Icon ? (
-                <Icon strokeWidth={2} className={room.kind === "section" ? "size-5" : "size-4"} />
-              ) : null}
-            </span>
+              </span>
+            ) : (
+              <span
+                aria-hidden="true"
+                className="size-5 rounded-full bg-brand shadow-overlay transition-transform duration-(--motion) ease-motion group-hover:scale-125 md:size-6"
+              />
+            )}
             <span
+              ref={(el) => {
+                labelRefs.current[i] = el;
+              }}
               className={cn(
-                "absolute top-full w-max max-w-24 text-center leading-tight text-foreground group-hover:text-brand md:max-w-32",
-                room.kind === "leaf" ? "text-xs font-medium md:text-sm" : "text-sm font-bold",
-                // Columns right of the hub label leftwards and the rest rightwards, so no label reaches the next column's.
-                besideLabelClass({ side: room.pos.x > 0 ? "left" : "right", always: false }),
+                "absolute w-max max-w-24 rounded-control bg-background/80 px-1 text-center text-xs font-bold leading-tight text-foreground group-hover:text-brand sm:text-sm md:max-w-32",
+                !sides && "invisible",
               )}
+              style={labelStyle[side]}
             >
               <bdi>{room.kind === "hub" ? "خانه" : room.short}</bdi>
             </span>
@@ -159,4 +285,8 @@ export function MapOverview({
       })}
     </div>
   );
+}
+
+function rank(room: Room) {
+  return room.kind === "hub" ? 0 : room.kind === "section" ? 1 : 2;
 }
