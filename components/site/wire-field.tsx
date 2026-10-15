@@ -91,7 +91,9 @@ export function WireField() {
     }
 
     function collect() {
-      const found = Array.from(document.querySelectorAll<HTMLElement>("[data-graph-node]"));
+      const found = Array.from(document.querySelectorAll<HTMLElement>("[data-graph-node]")).filter(
+        (el) => !el.closest("[data-world-dimmed]"),
+      );
       if (found.length === nodes.length && found.every((el, i) => el === nodes[i])) return;
       nodes = found;
       curves = found.flatMap((el, index) => curvesFor(el).map((c) => Object.assign(c, { node: index }) as Curve));

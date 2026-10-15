@@ -64,6 +64,22 @@ export function Wire({
   );
 }
 
+/** Physical side of the dot a label sits on, instead of under it. */
+export type LabelSide = "left" | "right";
+/** Where the label moves beside the dot: always, or only on short screens. */
+export type LabelBeside = { side: LabelSide; always: boolean };
+
+/** In RTL `start-full` (`right: 100%`) lands the label on the physical left. */
+export function besideLabelClass({ side, always }: LabelBeside) {
+  if (always) {
+    return cn("absolute top-1/2 w-max -translate-y-1/2", side === "left" ? "start-full ms-1" : "end-full me-1");
+  }
+  return cn(
+    "short:absolute short:top-1/2 short:w-max short:-translate-y-1/2",
+    side === "left" ? "short:start-full short:ms-1" : "short:end-full short:me-1",
+  );
+}
+
 /** A dot with its label underneath. The whole column is the link. */
 export function DotLink({
   href,
@@ -75,6 +91,7 @@ export function DotLink({
   pulse = false,
   delay = 0,
   external = false,
+  labelBeside,
 }: {
   href: string;
   at: Spot;
@@ -85,16 +102,17 @@ export function DotLink({
   pulse?: boolean;
   delay?: number;
   external?: boolean;
+  labelBeside?: LabelBeside;
 }) {
   const className = cn(
-    "graph-node group absolute z-10 flex w-max max-w-28 -translate-x-1/2 -translate-y-6 flex-col items-center gap-1 rounded-control text-center md:max-w-40 md:-translate-y-7",
+    "graph-node group absolute z-10 flex w-max max-w-28 -translate-x-1/2 -translate-y-6 flex-col items-center gap-1 rounded-control text-center md:max-w-40 md:-translate-y-7 short:-translate-y-5.5",
     focusRing,
   );
   const content = (
     <>
       <span
         className={cn(
-          "relative grid size-12 place-items-center rounded-full ring-4 ring-background transition-transform duration-(--motion) ease-motion group-hover:scale-110 group-active:scale-95 md:size-14",
+          "relative grid size-12 place-items-center rounded-full ring-4 ring-background transition-transform duration-(--motion) ease-motion group-hover:scale-110 group-active:scale-95 md:size-14 short:size-11",
           tone === "brand"
             ? "bg-brand text-brand-foreground"
             : "border-2 border-brand bg-card text-brand",
@@ -103,7 +121,12 @@ export function DotLink({
         {pulse ? <span aria-hidden="true" className="graph-pulse absolute inset-0 rounded-full bg-brand" /> : null}
         <Icon aria-hidden="true" strokeWidth={2} className="relative size-5 md:size-6" />
       </span>
-      <span className="rounded-control bg-background/80 px-2 text-sm font-semibold leading-normal text-foreground group-hover:text-brand">
+      <span
+        className={cn(
+          "rounded-control bg-background/80 px-2 text-sm font-semibold leading-normal text-foreground group-hover:text-brand",
+          labelBeside && besideLabelClass(labelBeside),
+        )}
+      >
         {label}
       </span>
     </>
@@ -149,14 +172,14 @@ export function CurrentNode({
       data-graph-node="center"
       className={cn(
         "graph-node absolute z-10 grid -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-brand text-brand-foreground",
-        compact ? "size-16 ring-4 ring-background md:size-20" : "size-24 ring-8 ring-background md:size-36",
+        compact ? "size-16 ring-4 ring-background md:size-20 short:size-11" : "size-24 ring-8 ring-background md:size-36 short:size-20 short:ring-4",
       )}
       style={place(at)}
     >
       <span aria-hidden="true" className="graph-pulse absolute inset-0 rounded-full bg-brand" />
       <span className="relative flex flex-col items-center gap-1 px-2 text-center">
-        <Icon aria-hidden="true" strokeWidth={2} className="size-6 md:size-8" />
-        <span className={cn("text-base font-bold leading-tight md:text-xl", compact && "sr-only")}>{title}</span>
+        <Icon aria-hidden="true" strokeWidth={2} className="size-6 md:size-8 short:size-5" />
+        <span className={cn("text-base font-bold leading-tight md:text-xl short:text-sm", compact && "sr-only")}>{title}</span>
       </span>
     </div>
   );

@@ -1,19 +1,31 @@
 import Link from "next/link";
 import type { CSSProperties } from "react";
 import { ArrowLeft, ArrowUpLeft } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Contact } from "@/components/site/contact";
-import { CurrentNode, DotLink, GraphFrame, Wire, bend, type Point } from "@/components/site/graph";
+import {
+  CurrentNode,
+  DotLink,
+  GraphFrame,
+  Wire,
+  bend,
+  besideLabelClass,
+  type LabelBeside,
+  type LabelSide,
+  type Point,
+} from "@/components/site/graph";
 import { Hub } from "@/components/site/hub";
 import { leafIcon, sectionIcons } from "@/components/site/icons";
 import { LogoMark } from "@/components/site/logo";
+import { MapButton } from "@/components/site/map-button";
 import type { Leaf } from "@/lib/content";
 import { neighborsOf, type Neighbor, type Room } from "@/lib/world";
 
 const center: Point = { x: 50, y: 50 };
 
-type Placed = Neighbor & { at: Point; from: Point };
+type Placed = Neighbor & { at: Point; from: Point; beside: boolean; side: LabelSide };
 
 /**
  * Put every neighbour in the direction it lies on the map, so a click pans the camera the way
@@ -30,40 +42,75 @@ function place(room: Room, neighbors: Neighbor[], radius: Point, inner: number):
   items.forEach((a, i) => {
     items.forEach((b, j) => {
       if (i === j) return;
-      let diff = Math.abs(a.angle - b.angle);
-      if (diff > Math.PI) diff = Math.PI * 2 - diff;
-      if (diff < 0.55 && a.dist < b.dist) {
+      let diff = b.angle - a.angle;
+      if (diff > Math.PI) diff -= Math.PI * 2;
+      if (diff < -Math.PI) diff += Math.PI * 2;
+      if (Math.abs(diff) >= 0.55 || a.dist >= b.dist) return;
+      b.via = i;
+      if (Math.abs(diff) < 0.1) {
         a.f = inner;
-        b.via = i;
+        return;
       }
+      // Nearly the same diagonal: fan the farther node out so the two dots and labels don't stack.
+      const angle = a.angle + Math.sign(diff) * 0.8;
+      b.ux = Math.cos(angle);
+      b.uy = Math.sin(angle);
     });
   });
   const at = items.map((i) => ({ x: center.x + i.ux * radius.x * i.f, y: center.y + i.uy * radius.y * i.f }));
-  return items.map((i, k) => ({ ...i.n, at: at[k], from: i.via >= 0 ? at[i.via] : center }));
+  // Labels beside a dot point away from the centre; a node straight above or below takes the
+  // side the other neighbours leave free.
+  const lean = items.reduce((sum, i) => sum + i.ux, 0);
+  return items.map((i, k) => ({
+    ...i.n,
+    at: at[k],
+    from: i.via >= 0 ? at[i.via] : center,
+    beside: Math.abs(i.uy) >= Math.abs(i.ux) * 0.7,
+    side: i.ux < -0.2 ? "left" : i.ux > 0.2 ? "right" : lean > 0 ? "left" : "right",
+  }));
 }
 
-export function HomeDot({ at, delay = 0 }: { at: Point; delay?: number }) {
+export function HomeDot({
+  at,
+  delay = 0,
+  labelBeside,
+}: {
+  at: Point;
+  delay?: number;
+  labelBeside?: LabelBeside;
+}) {
   return (
     <Link
       href="/"
       scroll={false}
       aria-label="خانه، بازگشت به گره مرکزی هزارتو"
       data-graph-node=""
-      className="graph-node group absolute z-10 flex w-max -translate-x-1/2 -translate-y-6 flex-col items-center gap-1 rounded-control focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-4 focus-visible:ring-offset-background md:-translate-y-7"
+      className="graph-node group absolute z-10 flex w-max -translate-x-1/2 -translate-y-6 flex-col items-center gap-1 rounded-control focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-4 focus-visible:ring-offset-background md:-translate-y-7 short:-translate-y-5.5"
       style={{ left: `${at.x}%`, top: `${at.y}%`, "--delay": `${delay}ms` } as CSSProperties}
     >
-      <span className="relative grid size-12 place-items-center overflow-hidden rounded-full border-2 border-brand bg-brand ring-4 ring-background transition-transform duration-(--motion) ease-motion group-hover:scale-110 group-active:scale-95 md:size-14">
+      <span className="relative grid size-12 place-items-center overflow-hidden rounded-full border-2 border-brand bg-brand ring-4 ring-background transition-transform duration-(--motion) ease-motion group-hover:scale-110 group-active:scale-95 md:size-14 short:size-11">
         <span aria-hidden="true" className="graph-pulse absolute inset-0 rounded-full border-2 border-brand" />
-        <LogoMark className="relative w-9 md:w-10" />
+        <LogoMark className="relative w-9 md:w-10 short:w-8" />
       </span>
-      <span className="rounded-control bg-background/80 px-2 text-sm font-bold leading-normal text-brand">خانه</span>
+      <span
+        className={cn(
+          "rounded-control bg-background/80 px-2 text-sm font-bold leading-normal text-brand",
+          labelBeside && besideLabelClass(labelBeside),
+        )}
+      >
+        خانه
+      </span>
     </Link>
   );
 }
 
 function NeighborGraph({ room, compact, className }: { room: Room; compact: boolean; className: string }) {
-  const placed = place(room, neighborsOf(room), compact ? { x: 42, y: 40 } : { x: 38, y: 38 }, 0.58);
+  const placed = place(room, neighborsOf(room), compact ? { x: 42, y: 42 } : { x: 38, y: 36 }, compact ? 0.52 : 0.58);
   const title = room.kind === "section" ? room.section.label : room.label;
+  // Compact graphs stack nodes tightly, so labels of nodes above or below always go beside them;
+  // full graphs only need that on short screens.
+  const beside = (p: Placed): LabelBeside | undefined =>
+    compact ? (p.beside ? { side: p.side, always: true } : undefined) : { side: p.side, always: false };
   const icon =
     room.kind === "leaf"
       ? leafIcon(room.section.id, room.leaf.slug)
@@ -86,7 +133,7 @@ function NeighborGraph({ room, compact, className }: { room: Room; compact: bool
     >
       <CurrentNode at={center} icon={icon} title={title} compact={compact} />
       {placed.map((p, index) => {
-        if (p.role === "home") return <HomeDot key="home" at={p.at} delay={200 + index * 100} />;
+        if (p.role === "home") return <HomeDot key="home" at={p.at} delay={200 + index * 100} labelBeside={beside(p)} />;
         const r = p.room;
         const nodeIcon =
           r.kind === "leaf" ? leafIcon(r.section.id, r.leaf.slug) : r.kind === "section" ? sectionIcons[r.section.id] : icon;
@@ -101,6 +148,7 @@ function NeighborGraph({ room, compact, className }: { room: Room; compact: bool
             tone={p.role === "sibling" ? "quiet" : "brand"}
             pulse={p.role === "child" && index === 1}
             delay={200 + index * 100}
+            labelBeside={beside(p)}
           />
         );
       })}
@@ -113,12 +161,15 @@ export function RoomBody({ room, active, showCard }: { room: Room; active: boole
 
   if (room.kind === "hub") {
     return (
-      <div className="flex h-full flex-col pt-16 pb-12">
+      <div className="flex h-full flex-col pt-16 pb-12 short:pt-12">
         <Heading className="sr-only">
           هزارتو، شرکت فناوری و نوآوری شناخت. از گره مرکزی یکی از چهار راه را بروید: رویداد، محصول، درباره ما یا آموزش.
         </Heading>
         <div className="graph-stage-wrap grid min-h-0 flex-1 place-items-center px-4 py-2">
           <Hub />
+        </div>
+        <div className="flex shrink-0 justify-center px-4 pb-2">
+          <MapButton />
         </div>
       </div>
     );
@@ -126,10 +177,10 @@ export function RoomBody({ room, active, showCard }: { room: Room; active: boole
 
   if (room.kind === "section") {
     return (
-      <div className="flex h-full flex-col pt-16 pb-12">
+      <div className="flex h-full flex-col pt-16 pb-12 short:pt-12">
         <div className="mx-auto flex w-full max-w-5xl shrink-0 flex-col gap-1 px-4">
-          <Heading className="wordmark text-2xl md:text-3xl">{room.section.title}</Heading>
-          <p className="max-w-2xl text-base text-foreground/85">{room.section.summary}</p>
+          <Heading className="wordmark text-2xl md:text-3xl short:text-xl">{room.section.title}</Heading>
+          <p className="max-w-2xl text-base text-foreground/85 short:sr-only">{room.section.summary}</p>
         </div>
         <div className="graph-stage-wrap grid min-h-0 flex-1 place-items-center px-4 py-2">
           <NeighborGraph room={room} compact={false} className="graph-stage" />
@@ -139,10 +190,16 @@ export function RoomBody({ room, active, showCard }: { room: Room; active: boole
   }
 
   return (
-    <div className="h-full overflow-y-auto pt-16 pb-16">
-      <div className="mx-auto flex w-full max-w-5xl flex-col items-center gap-4 px-4">
-        <NeighborGraph room={room} compact className="aspect-square w-full max-w-md md:aspect-5/2 md:max-w-none" />
-        {showCard ? <LeafCard leaf={room.leaf} active={active} /> : <div className="min-h-96 w-full max-w-3xl" />}
+    <div className="flex h-full flex-col pt-16 pb-14 short:pt-12">
+      <div className="min-h-0 flex-1 overflow-y-auto">
+        <div className="mx-auto flex w-full max-w-5xl flex-col items-center gap-4 px-4 pb-4 short:flex-row short:items-start">
+          <NeighborGraph
+            room={room}
+            compact
+            className="leaf-graph aspect-square w-full max-w-md md:aspect-2/1 md:max-w-none"
+          />
+          {showCard ? <LeafCard leaf={room.leaf} active={active} /> : <div className="min-h-96 w-full max-w-3xl" />}
+        </div>
       </div>
     </div>
   );

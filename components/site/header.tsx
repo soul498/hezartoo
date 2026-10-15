@@ -14,7 +14,7 @@ export function Header({ trail = [] }: { trail?: Crumb[] }) {
       >
         رفتن به محتوا
       </a>
-      <div className="mx-auto flex h-16 w-full max-w-5xl items-center gap-4 px-4">
+      <div className="mx-auto flex h-16 w-full max-w-5xl items-center gap-4 px-4 short:h-12">
         <Link
           href="/"
           scroll={false}
@@ -42,7 +42,7 @@ export function Header({ trail = [] }: { trail?: Crumb[] }) {
                       <Link
                         href={crumb.href}
                         scroll={false}
-                        className="flex min-h-11 items-center truncate rounded-control text-foreground/80 hover:text-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        className="flex min-h-11 min-w-11 items-center justify-center truncate rounded-control text-foreground/80 hover:text-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                       >
                         <bdi>{crumb.label}</bdi>
                       </Link>
