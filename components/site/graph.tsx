@@ -4,13 +4,16 @@ import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export type Point = { x: number; y: number };
+/** Numbers are frame percentages; strings are raw CSS lengths (e.g. `var(--hub-x)`). */
+export type Spot = { x: number | string; y: number | string };
 
 const focusRing =
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-4 focus-visible:ring-offset-background";
 
 /** Graph coordinates are percentages of the frame, on both axes. */
-function place({ x, y }: Point, delay = 0): CSSProperties {
-  return { left: `${x}%`, top: `${y}%`, "--delay": `${delay}ms` } as CSSProperties;
+function place({ x, y }: Spot, delay = 0): CSSProperties {
+  const unit = (v: number | string) => (typeof v === "number" ? `${v}%` : v);
+  return { left: unit(x), top: unit(y), "--delay": `${delay}ms` } as CSSProperties;
 }
 
 export function GraphFrame({
@@ -19,16 +22,13 @@ export function GraphFrame({
   className,
   label,
 }: {
-  wires: ReactNode;
+  wires?: ReactNode;
   children: ReactNode;
   className?: string;
   label: string;
 }) {
   return (
-    <nav
-      aria-label={label}
-      className={cn("graph-field relative w-full rounded-surface border-line border-border", className)}
-    >
+    <nav aria-label={label} data-graph-stage="" className={cn("relative", className)}>
       <svg
         className="pointer-events-none absolute inset-0 size-full overflow-visible"
         viewBox="0 0 100 100"
@@ -122,13 +122,21 @@ export function DotLink({
 
   if (external) {
     return (
-      <a href={href} target="_blank" rel="noreferrer" aria-label={ariaLabel} className={className} style={place(at, delay)}>
+      <a
+        href={href}
+        target="_blank"
+        rel="noreferrer"
+        aria-label={ariaLabel}
+        data-graph-node=""
+        className={className}
+        style={place(at, delay)}
+      >
         {content}
       </a>
     );
   }
   return (
-    <Link href={href} aria-label={ariaLabel} className={className} style={place(at, delay)}>
+    <Link href={href} aria-label={ariaLabel} data-graph-node="" className={className} style={place(at, delay)}>
       {content}
     </Link>
   );
@@ -143,7 +151,7 @@ export function RingLink({
   delay = 0,
 }: {
   href: string;
-  at: Point;
+  at: Spot;
   label: string;
   ariaLabel: string;
   delay?: number;
@@ -152,6 +160,7 @@ export function RingLink({
     <Link
       href={href}
       aria-label={ariaLabel}
+      data-graph-node=""
       className={cn(
         "graph-node group absolute z-10 grid size-18 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full md:size-28",
         focusRing,
@@ -181,6 +190,7 @@ export function CurrentNode({
   return (
     <div
       aria-current="page"
+      data-graph-node="center"
       className={cn(
         "graph-node absolute z-10 grid -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-brand text-brand-foreground",
         compact ? "size-16 ring-4 ring-background md:size-20" : "size-24 ring-8 ring-background md:size-36",

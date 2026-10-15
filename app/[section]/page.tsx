@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { Shell } from "@/components/site/header";
+import { Stage } from "@/components/site/header";
 import { SectionGraph } from "@/components/site/section-graph";
 import { getSection, sections } from "@/lib/content";
 
@@ -27,12 +27,16 @@ export default async function Page({ params }: Props) {
   if (!section) notFound();
 
   return (
-    <Shell trail={[{ href: `/${section.id}`, label: section.label }]}>
-      <div className="flex flex-col gap-2">
-        <h1 className="text-3xl md:text-4xl">{section.title}</h1>
-        <p className="max-w-2xl text-lg">{section.summary}</p>
-      </div>
+    <Stage
+      trail={[{ href: `/${section.id}`, label: section.label }]}
+      heading={
+        <div className="flex flex-col gap-1">
+          <h1 className="text-2xl md:text-3xl">{section.title}</h1>
+          <p className="max-w-2xl text-base text-foreground/85">{section.summary}</p>
+        </div>
+      }
+    >
       <SectionGraph section={section} />
-    </Shell>
+    </Stage>
   );
 }

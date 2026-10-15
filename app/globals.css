@@ -189,3 +189,32 @@
     opacity: 0;
   }
 }
+
+/* Full-screen stage: the node graph keeps its aspect ratio and fits the space left by the chrome. */
+.graph-stage-wrap {
+  container-type: size;
+}
+
+.graph-stage {
+  width: min(100cqw, 100cqh * 0.75);
+  aspect-ratio: 3 / 4;
+}
+
+.hub-stage {
+  --hub-x: 16%;
+  --hub-y: 22%;
+  width: min(100cqw, 100cqh * 0.8);
+  aspect-ratio: 4 / 5;
+}
+
+@media (min-width: 768px) {
+  .graph-stage {
+    width: min(100cqw, 100cqh * 1.5);
+    aspect-ratio: 3 / 2;
+  }
+
+  .hub-stage {
+    --hub-x: 28%;
+    --hub-y: 20%;
+  }
+}

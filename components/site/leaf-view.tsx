@@ -19,7 +19,7 @@ export function LeafView({ section, leaf }: { section: Section; leaf: Leaf }) {
     <div className="flex flex-col items-center">
       <GraphFrame
         label={`نقشه‌ی ${section.label}`}
-        className="aspect-4/3 md:aspect-3/1"
+        className="aspect-4/3 w-full rounded-surface border-line border-border bg-background/40 md:aspect-3/1"
         wires={
           <>
             <Wire d={`M${parentAt.x} ${parentAt.y} L${currentAt.x} ${currentAt.y}`} />

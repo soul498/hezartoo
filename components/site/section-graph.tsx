@@ -1,4 +1,4 @@
-import { DotLink, GraphFrame, CurrentNode, Terminal, Wire, bend, wiggle, type Point } from "@/components/site/graph";
+import { DotLink, GraphFrame, CurrentNode, Wire, bend, wiggle, type Point } from "@/components/site/graph";
 import { HubDot } from "@/components/site/hub-dot";
 import { leafIcon, sectionIcons } from "@/components/site/icons";
 import type { Section, Side } from "@/lib/content";
@@ -25,16 +25,6 @@ function polar(angle: number, radius: Point): Point {
   return { x: center.x + Math.cos(rad) * radius.x, y: center.y + Math.sin(rad) * radius.y };
 }
 
-/** Walk from the center through `p` until the frame edge. */
-function toEdge(p: Point): Point {
-  const dx = p.x - center.x;
-  const dy = p.y - center.y;
-  const tx = dx === 0 ? Infinity : (dx > 0 ? 100 - center.x : -center.x) / dx;
-  const ty = dy === 0 ? Infinity : (dy > 0 ? 100 - center.y : -center.y) / dy;
-  const t = Math.min(tx, ty);
-  return { x: center.x + dx * t, y: center.y + dy * t };
-}
-
 export function SectionGraph({ section }: { section: Section }) {
   const dir = direction[section.side];
   const base = (Math.atan2(dir.y, dir.x) * 180) / Math.PI;
@@ -51,15 +41,12 @@ export function SectionGraph({ section }: { section: Section }) {
   return (
     <GraphFrame
       label={`نقشه‌ی ${section.label}`}
-      className="aspect-square md:aspect-3/2"
+      className="graph-stage"
       wires={
         <>
           <Wire d={wiggle(back, center, 3)} tone="quiet" />
           {nodes.map(({ leaf, at }, index) => (
             <Wire key={leaf.slug} d={bend(center, at, index % 2 ? -5 : 5)} delay={200 + index * 120} />
-          ))}
-          {nodes.map(({ leaf, at }, index) => (
-            <Wire key={`${leaf.slug}-out`} d={wiggle(at, toEdge(at), 2.5)} tone="quiet" delay={500 + index * 120} />
           ))}
         </>
       }
@@ -77,9 +64,6 @@ export function SectionGraph({ section }: { section: Section }) {
           pulse={index === 0}
           delay={300 + index * 120}
         />
-      ))}
-      {nodes.map(({ leaf, at }, index) => (
-        <Terminal key={leaf.slug} at={toEdge(at)} delay={800 + index * 120} />
       ))}
     </GraphFrame>
   );

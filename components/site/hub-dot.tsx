@@ -8,6 +8,7 @@ export function HubDot({ at }: { at: Point }) {
     <Link
       href="/"
       aria-label="بازگشت به گره مرکزی هزارتو"
+      data-graph-node=""
       className="graph-node group absolute z-10 flex w-max -translate-x-1/2 -translate-y-6 flex-col items-center gap-1 rounded-control focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-4 focus-visible:ring-offset-background md:-translate-y-7"
       style={{ left: `${at.x}%`, top: `${at.y}%` } as CSSProperties}
     >
