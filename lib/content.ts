@@ -1,64 +1,204 @@
 export const instagramUrl = "https://www.instagram.com/hezartoovr/";
 export const linkedinUrl = "https://www.linkedin.com/company/hezartooco";
 
-export const nav = [
-  { href: "#maze", label: "نقشه" },
-  { href: "#projects", label: "پروژه‌ها" },
-  { href: "#event", label: "رویداد" },
-  { href: "#faq", label: "پرسش‌ها" },
-  { href: "#contact", label: "تماس" },
-] as const;
+/** Physical side of the hub the section hangs from. Not flipped by RTL. */
+export type Side = "top" | "bottom" | "left" | "right";
 
-export type RoomId = "center" | "cognition" | "xr" | "play" | "ai";
+export type SectionId = "events" | "about" | "education" | "product";
 
-export const rooms: Record<
-  RoomId,
-  { label: string; title: string; body: string; keywords: string[] }
-> = {
-  center: {
-    label: "مرکز",
-    title: "میانه‌ی هزارتو",
-    body: "هزارتو فقط اسم شرکت نیست. هر تجربه‌ی شناختی از یک پیچ شروع می‌شود: یک پرسش، یک حس، یک قاعده. این اتاق مرکز است. چهار راهرو به چهار میدان کار باز می‌شود.",
-    keywords: ["هزارتو", "مرکز", "شرکت"],
-  },
-  cognition: {
-    label: "شناخت",
-    title: "علوم شناختی",
-    body: "یادگیری وقتی معنا دارد که ذهن را درگیر کند. توجه، حافظه، ادراک و تصمیمی که داخل تجربه گرفته می‌شود، نقطه‌ی شروع کار هزارتو است؛ نه یک اسلاید که از کنارش رد شویم.",
-    keywords: ["شناخت", "شناختی", "یادگیری", "ذهن", "حافظه", "توجه"],
-  },
-  xr: {
-    label: "واقعیت",
-    title: "واقعیت گسترده",
-    body: "سکوهای آموزشی و شناختی مبتنی بر واقعیت مجازی این‌جا ساخته می‌شوند. حضور، به‌جای تماشا. فضایی که می‌شود داخلش راه رفت، اشتباه کرد و دوباره ساخت.",
-    keywords: ["واقعیت", "مجازی", "هدست", "xr", "vr", "غوطه"],
-  },
-  play: {
-    label: "بازی",
-    title: "طراحی بازی",
-    body: "بازی‌وارسازی برای هزارتو تزئین روی یک درس نیست. قاعده، بازخورد و پیشرفت ابزارهایی هستند که یک مفهوم شناختی را قابل‌لمس می‌کنند.",
-    keywords: ["بازی", "گیم", "بازی‌وار", "gamif"],
-  },
-  ai: {
-    label: "هوش",
-    title: "هوش مصنوعی",
-    body: "تولید رسانه‌ای هوشمند و روایت تعاملی دیجیتال، میدان دیگر هزارتو است. هوش مصنوعی کنار انسان می‌نشیند تا روایت دقیق‌تر شود، نه اینکه جای پرسش را بگیرد.",
-    keywords: ["هوش", "مصنوعی", "رسانه", "روایت", "ai"],
-  },
+export type Leaf = {
+  slug: string;
+  /** Short label drawn under the dot on the graph. */
+  label: string;
+  title: string;
+  status?: string;
+  body: string[];
+  facts?: { label: string; value: string }[];
+  people?: { name: string; role: string }[];
+  items?: { title: string; body: string }[];
+  links?: { href: string; label: string; external?: boolean }[];
+  contact?: boolean;
 };
 
-export const projects = [
+export type Section = {
+  id: SectionId;
+  side: Side;
+  label: string;
+  title: string;
+  summary: string;
+  leaves: Leaf[];
+};
+
+const followLinks = [
+  { href: instagramUrl, label: "اینستاگرام هزارتو", external: true },
+  { href: linkedinUrl, label: "لینکدین هزارتو", external: true },
+];
+
+export const sections: Section[] = [
   {
-    id: "neurotopia",
-    name: "Neurotopia",
-    status: "در حال ساخت",
+    id: "events",
+    side: "top",
+    label: "رویداد",
+    title: "رویدادها",
+    summary: "نخستین حضور عمومی هزارتو و خبر رویدادهای بعدی.",
+    leaves: [
+      {
+        slug: "hoosh",
+        label: "هوش؛ از انسان تا کامپیوتر",
+        title: "هوش؛ از انسان تا کامپیوتر",
+        status: "برگزار شد",
+        body: [
+          "نخستین رویداد عمومی هزارتو، با همراهی پارک علم و فناوری گلستان. دو سخنران از دو سوی یک پرسش: هوش در مغز انسان و هوش در ماشین.",
+        ],
+        facts: [
+          { label: "تاریخ", value: "چهارشنبه ۲۲ اسفند ۱۴۰۳" },
+          { label: "ساعت", value: "۱۰ تا ۱۲" },
+          { label: "مکان", value: "کارخانه نوآوری گرگان، سالن رویدادها" },
+          { label: "همراه", value: "پارک علم و فناوری گلستان" },
+        ],
+        people: [
+          { name: "امیرحسین فیضی", role: "پژوهشگر و کاندیدای دکتری علوم اعصاب شناختی" },
+          { name: "مهرشاد عیسایی", role: "پژوهشگر بینایی ماشین و پردازش زبان طبیعی" },
+        ],
+      },
+      {
+        slug: "next",
+        label: "رویداد بعدی",
+        title: "رویداد بعدی",
+        status: "هنوز اعلام نشده",
+        body: [
+          "تاریخ و موضوع رویداد بعدی هنوز اعلام نشده است. خبرش اول در اینستاگرام هزارتو منتشر می‌شود.",
+        ],
+        links: [{ href: instagramUrl, label: "دنبال کردن در اینستاگرام", external: true }],
+      },
+    ],
   },
   {
-    id: "anavia",
-    name: "Anavia",
-    status: "در حال ساخت",
+    id: "about",
+    side: "bottom",
+    label: "درباره ما",
+    title: "درباره‌ی هزارتو",
+    summary: "شرکت فناوری و نوآوری شناخت؛ این‌که چه می‌سازد و چطور می‌شود با آن حرف زد.",
+    leaves: [
+      {
+        slug: "intro",
+        label: "معرفی",
+        title: "معرفی و مأموریت",
+        body: [
+          "هزارتو شرکت فناوری و نوآوری شناخت است. سکوهای آموزشی و شناختی مبتنی بر واقعیت مجازی، سامانه‌های بازی‌وار، تولید رسانه‌ای هوشمند و روایت تعاملی دیجیتال می‌سازد.",
+          "کار هزارتو در محل برخورد واقعیت گسترده، هوش مصنوعی، طراحی بازی و علوم شناختی است: تجربه‌ای که ذهن را درگیر کند، نه این‌که فقط تماشایش کنیم.",
+          "هزارتوی این صفحه فروشگاه هدست و تجهیزات گیمینگ نیست. واقعیت مجازی این‌جا ابزار ساخت تجربه‌ی آموزشی و شناختی است.",
+        ],
+      },
+      {
+        slug: "fields",
+        label: "حوزه‌ها",
+        title: "چهار حوزه‌ی کار",
+        body: ["هر پروژه‌ی هزارتو از ترکیب این چهار حوزه ساخته می‌شود."],
+        items: [
+          {
+            title: "واقعیت گسترده",
+            body: "سکوهای آموزشی و شناختی مبتنی بر واقعیت مجازی؛ حضور به‌جای تماشا.",
+          },
+          {
+            title: "هوش مصنوعی",
+            body: "تولید رسانه‌ای هوشمند و روایت تعاملی دیجیتال، با هوش مصنوعی کنار انسان.",
+          },
+          {
+            title: "طراحی بازی",
+            body: "قاعده، بازخورد و پیشرفت؛ ابزارهایی که یک مفهوم را قابل‌لمس می‌کنند.",
+          },
+          {
+            title: "علوم شناختی",
+            body: "توجه، حافظه، ادراک و تصمیم؛ نقطه‌ی شروع طراحی هر تجربه.",
+          },
+        ],
+      },
+      {
+        slug: "contact",
+        label: "تماس",
+        title: "تماس با هزارتو",
+        body: [
+          "مدرسه، پژوهش، خانه‌ی نوآوری یا یک پروژه‌ی مشترک. پیام را این‌جا می‌نویسید و در اینستاگرام هزارتو می‌فرستید.",
+        ],
+        contact: true,
+      },
+    ],
   },
-] as const;
+  {
+    id: "education",
+    side: "left",
+    label: "آموزش",
+    title: "آموزش",
+    summary: "یادگیری‌ای که داخلش می‌شود راه رفت، بازی کرد و دوباره امتحان کرد.",
+    leaves: [
+      {
+        slug: "vr",
+        label: "واقعیت مجازی",
+        title: "یادگیری غوطه‌ور در واقعیت مجازی",
+        body: [
+          "هزارتو سکوهای آموزشی و شناختی مبتنی بر واقعیت مجازی می‌سازد. حضور، به‌جای تماشا: فضایی که می‌شود داخلش راه رفت، اشتباه کرد و دوباره ساخت.",
+        ],
+      },
+      {
+        slug: "gamification",
+        label: "بازی‌وارسازی",
+        title: "بازی‌وارسازی",
+        body: [
+          "بازی‌وارسازی برای هزارتو تزئین روی یک درس نیست. قاعده، بازخورد و پیشرفت ابزارهایی هستند که یک مفهوم شناختی را قابل‌لمس می‌کنند.",
+        ],
+      },
+      {
+        slug: "partners",
+        label: "همکاری‌ها",
+        title: "همکاری با مدرسه‌ها و مراکز پژوهشی",
+        body: [
+          "هزارتو با مدرسه‌ها، مراکز پژوهشی و خانه‌های نوآوری همکاری می‌کند. اگر از طرف یکی از این مجموعه‌ها می‌نویسید، از گره تماس پیام بدهید.",
+        ],
+        links: [{ href: "/about/contact", label: "رفتن به گره تماس" }],
+      },
+    ],
+  },
+  {
+    id: "product",
+    side: "right",
+    label: "محصول",
+    title: "محصول‌ها",
+    summary: "دو پروژه‌ی شاخص در حال ساخت، و خط رسانه‌ی هوشمند هزارتو.",
+    leaves: [
+      {
+        slug: "neurotopia",
+        label: "Neurotopia",
+        title: "Neurotopia",
+        status: "در حال ساخت",
+        body: [
+          "یکی از دو پروژه‌ی شاخص هزارتو که هنوز در حال ساخت است. شرح محصول هنوز منتشر نشده و این‌جا چیزی از خودمان به آن اضافه نمی‌کنیم.",
+          "خبر رونمایی را از اینستاگرام و لینکدین هزارتو دنبال کنید.",
+        ],
+        links: followLinks,
+      },
+      {
+        slug: "anavia",
+        label: "Anavia",
+        title: "Anavia",
+        status: "در حال ساخت",
+        body: [
+          "دومین پروژه‌ی شاخص هزارتو، آن هم در حال ساخت. تا وقتی جزئیاتش منتشر نشود، همین قدر می‌دانیم که در دامنه‌ی کار شرکت است: واقعیت مجازی آموزشی و شناختی، رسانه‌ی هوشمند و روایت تعاملی.",
+          "خبر رونمایی را از اینستاگرام و لینکدین هزارتو دنبال کنید.",
+        ],
+        links: followLinks,
+      },
+      {
+        slug: "media",
+        label: "رسانه‌ی هوشمند",
+        title: "رسانه‌ی هوشمند و روایت تعاملی",
+        body: [
+          "تولید رسانه‌ای هوشمند و روایت تعاملی دیجیتال، میدان دیگر کار هزارتو است. هوش مصنوعی کنار انسان می‌نشیند تا روایت دقیق‌تر شود، نه این‌که جای پرسش را بگیرد.",
+        ],
+      },
+    ],
+  },
+];
 
 export const topics = [
   { value: "school", label: "مدرسه و یادگیری" },
@@ -68,52 +208,12 @@ export const topics = [
   { value: "project", label: "پروژه‌ی مشترک" },
 ];
 
-export const faqs = [
-  {
-    id: "what",
-    title: "هزارتو دقیقاً چه کار می‌کند؟",
-    content:
-      "شرکت فناوری و نوآوری شناخت است. سامانه‌های بازی‌وار، محیط‌های یادگیری غوطه‌ور و سکوهای رسانه‌ای هوشمند می‌سازد؛ در چهارراه واقعیت گسترده، هوش مصنوعی، طراحی بازی و علوم شناختی.",
-  },
-  {
-    id: "projects",
-    title: "Neurotopia و Anavia چه هستند؟",
-    content:
-      "دو پروژه‌ی شاخص که شرکت در معرفی عمومی‌اش نام برده و هنوز در حال ساخته‌شدن‌اند. جزئیات محصول را وقتی منتشر نشده، این‌جا اختراع نمی‌کنیم. خبر را از اینستاگرام و لینکدین هزارتو دنبال کنید.",
-  },
-  {
-    id: "shop",
-    title: "این صفحه فروشگاه هدست واقعیت مجازی است؟",
-    content:
-      "نه. هزارتوی این صفحه شرکت فناوری و نوآوری شناخت است و تجهیزات گیمینگ نمی‌فروشد. واقعیت مجازی این‌جا ابزار ساخت تجربه‌ی آموزشی و شناختی است.",
-  },
-  {
-    id: "who",
-    title: "با چه کسانی همراه می‌شود؟",
-    content:
-      "با مدرسه‌ها، مراکز پژوهشی و خانه‌های نوآوری. نخستین حضور عمومی‌اش نشست «هوش؛ از انسان تا کامپیوتر» بود، با پارک علم و فناوری گلستان در کارخانه نوآوری گرگان.",
-  },
-  {
-    id: "message",
-    title: "پیام فرم تماس کجا می‌رود؟",
-    content:
-      "این نسخه‌ی نمایشی سرور ندارد و پیام را جایی ذخیره نمی‌کند. متن را کپی می‌کنید و در اینستاگرام هزارتو می‌فرستید تا به دست شرکت برسد.",
-  },
-];
+export function getSection(id: string): Section | undefined {
+  return sections.find((section) => section.id === id);
+}
 
-export function routeQuery(raw: string): { room: RoomId; miss: boolean } {
-  const q = raw
-    .trim()
-    .toLowerCase()
-    .replace(/ي/g, "ی")
-    .replace(/ك/g, "ک")
-    .replace(/\u200c/g, "");
-  if (!q) return { room: "center", miss: true };
-  const order: RoomId[] = ["xr", "play", "ai", "cognition", "center"];
-  for (const id of order) {
-    if (rooms[id].keywords.some((word) => q.includes(word.replace(/\u200c/g, "")))) {
-      return { room: id, miss: false };
-    }
-  }
-  return { room: "center", miss: true };
+export function getLeaf(sectionId: string, slug: string) {
+  const section = getSection(sectionId);
+  const leaf = section?.leaves.find((item) => item.slug === slug);
+  return section && leaf ? { section, leaf } : undefined;
 }

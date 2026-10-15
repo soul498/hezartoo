@@ -1,74 +1,109 @@
-"use client";
-
-import { useState } from "react";
-import { Menu } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Sheet } from "@/components/ui/sheet";
-import { ButtonLink } from "@/components/site/button-link";
+import Link from "next/link";
+import type { ReactNode } from "react";
 import { Mark } from "@/components/site/logo";
-import { instagramUrl, nav } from "@/lib/content";
+import { instagramUrl, linkedinUrl } from "@/lib/content";
 
-export function Header() {
-  const [open, setOpen] = useState(false);
+export type Crumb = { href: string; label: string };
 
+/** The path walked so far, drawn as dots joined by a line. Last crumb is the current node. */
+export function Header({ trail = [] }: { trail?: Crumb[] }) {
   return (
-    <header className="sticky top-0 z-40 border-b border-border bg-background/95">
+    <header className="border-b border-border">
       <a
         href="#content"
         className="sr-only focus:not-sr-only focus:fixed focus:start-4 focus:top-4 focus:z-50 focus:rounded-control focus:bg-primary focus:px-4 focus:py-3 focus:text-sm focus:font-semibold focus:text-primary-foreground"
       >
         رفتن به محتوا
       </a>
-      <div className="mx-auto flex h-16 w-full max-w-5xl items-center justify-between gap-4 px-4">
-        <a href="#top" className="flex items-center gap-3" aria-label="هزارتو، ابتدای صفحه">
+      <div className="mx-auto flex h-16 w-full max-w-5xl items-center gap-4 px-4">
+        <Link
+          href="/"
+          className="flex min-h-11 shrink-0 items-center gap-3 rounded-control focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          aria-label="هزارتو، گره مرکزی"
+        >
           <Mark className="h-10 w-auto overflow-hidden rounded-control" />
           <span className="text-lg font-bold">هزارتو</span>
+        </Link>
+
+        {trail.length > 0 ? (
+          <nav aria-label="مسیر" className="min-w-0 flex-1 max-sm:hidden">
+            <ol className="flex items-center gap-2 text-sm">
+              {trail.map((crumb, index) => {
+                const last = index === trail.length - 1;
+                return (
+                  <li key={crumb.href} className="flex min-w-0 items-center gap-2">
+                    <span aria-hidden="true" className="h-px w-6 shrink-0 bg-brand/60" />
+                    <span aria-hidden="true" className="size-2 shrink-0 rounded-full bg-brand" />
+                    {last ? (
+                      <span aria-current="page" className="truncate font-semibold">
+                        <bdi>{crumb.label}</bdi>
+                      </span>
+                    ) : (
+                      <Link
+                        href={crumb.href}
+                        className="flex min-h-11 items-center truncate rounded-control text-foreground/80 hover:text-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      >
+                        <bdi>{crumb.label}</bdi>
+                      </Link>
+                    )}
+                  </li>
+                );
+              })}
+            </ol>
+          </nav>
+        ) : (
+          <span className="flex-1" />
+        )}
+
+        <a
+          href={instagramUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="flex h-11 shrink-0 items-center rounded-control px-4 text-sm font-semibold hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring max-sm:hidden"
+        >
+          اینستاگرام
         </a>
-        <nav className="hidden items-center gap-6 md:flex" aria-label="بخش‌های صفحه">
-          {nav.map((item) => (
-            <a key={item.href} href={item.href} className="text-sm font-medium text-foreground/80 hover:text-foreground">
-              {item.label}
-            </a>
-          ))}
-        </nav>
-        <div className="flex items-center gap-2">
-          <ButtonLink
+      </div>
+    </header>
+  );
+}
+
+export function Footer() {
+  return (
+    <footer className="border-t border-border">
+      <div className="mx-auto flex w-full max-w-5xl flex-wrap items-center justify-between gap-4 px-4 py-6 text-sm">
+        <p className="font-semibold">شرکت فناوری و نوآوری شناخت هزارتو</p>
+        <div className="flex flex-wrap gap-2">
+          <a
             href={instagramUrl}
             target="_blank"
             rel="noreferrer"
-            variant="outline"
-            className="h-11 max-sm:hidden"
+            className="flex h-11 items-center rounded-control px-4 hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             اینستاگرام
-          </ButtonLink>
-          <Button
-            size="icon"
-            variant="outline"
-            className="size-11 md:hidden"
-            aria-label="باز کردن منو"
-            onClick={() => setOpen(true)}
+          </a>
+          <a
+            href={linkedinUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="flex h-11 items-center rounded-control px-4 hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
-            <Menu strokeWidth={2} />
-          </Button>
+            لینکدین
+          </a>
         </div>
       </div>
-      <Sheet open={open} onOpenChange={setOpen} title="منو" side="start">
-        <nav className="flex flex-col gap-2" aria-label="بخش‌های صفحه">
-          {nav.map((item) => (
-            <a
-              key={item.href}
-              href={item.href}
-              onClick={() => setOpen(false)}
-              className="flex min-h-11 items-center rounded-control px-3 text-base hover:bg-accent"
-            >
-              {item.label}
-            </a>
-          ))}
-          <ButtonLink href={instagramUrl} target="_blank" rel="noreferrer" className="mt-4">
-            اینستاگرام هزارتو
-          </ButtonLink>
-        </nav>
-      </Sheet>
-    </header>
+    </footer>
+  );
+}
+
+export function Shell({ trail, children }: { trail?: Crumb[]; children: ReactNode }) {
+  return (
+    <>
+      <Header trail={trail} />
+      <main id="content" className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 px-4 py-8 md:py-10">
+        {children}
+      </main>
+      <Footer />
+    </>
   );
 }

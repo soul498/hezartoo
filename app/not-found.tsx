@@ -1,16 +1,20 @@
-import { ButtonLink } from "@/components/site/button-link";
-
-const home = `${process.env.NEXT_PUBLIC_BASE_PATH || ""}/`;
+import Link from "next/link";
+import { Shell } from "@/components/site/header";
 
 export default function NotFound() {
   return (
-    <main className="mx-auto flex min-h-full w-full max-w-lg flex-col justify-center gap-4 px-4 py-24">
-      <p className="text-sm text-muted-foreground">۴۰۴</p>
-      <h1 className="text-3xl">این راهرو به جایی نمی‌رسد</h1>
-      <p className="text-lg">صفحه‌ای که دنبالش بودید روی این نقشه نیست.</p>
-      <ButtonLink href={home} className="w-fit">
-        بازگشت به هزارتو
-      </ButtonLink>
-    </main>
+    <Shell>
+      <div className="mx-auto flex w-full max-w-lg flex-1 flex-col justify-center gap-4 py-16">
+        <p className="text-sm text-muted-foreground">۴۰۴</p>
+        <h1 className="text-3xl">این گره به جایی وصل نیست</h1>
+        <p className="text-lg">صفحه‌ای که دنبالش بودید روی این نقشه نیست.</p>
+        <Link
+          href="/"
+          className="inline-flex h-12 w-fit items-center justify-center rounded-control bg-primary px-6 text-base font-semibold text-primary-foreground hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+        >
+          بازگشت به گره مرکزی
+        </Link>
+      </div>
+    </Shell>
   );
 }

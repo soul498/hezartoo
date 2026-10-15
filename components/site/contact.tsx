@@ -75,15 +75,7 @@ export function Contact() {
   }
 
   return (
-    <section id="contact" className="scroll-mt-20 py-16">
-      <div className="mb-6 flex flex-col gap-2">
-        <p className="text-sm font-medium text-brand">تماس</p>
-        <h2 className="text-3xl">یک پیام برای شروع همکاری</h2>
-        <p className="max-w-2xl text-lg">
-          مدرسه، پژوهش، خانه‌ی نوآوری یا یک پروژه‌ی مشترک. پیام را این‌جا می‌نویسید و در اینستاگرام هزارتو می‌فرستید.
-        </p>
-      </div>
-
+    <div id="contact">
       <Alert variant="info" title="این صفحه پیام را ذخیره نمی‌کند" className="mb-6">
         نسخه‌ی نمایشی سرور ندارد. بعد از نوشتن، متن کپی می‌شود تا در اینستاگرام بفرستید.
       </Alert>
@@ -166,6 +158,6 @@ export function Contact() {
           </Alert>
         ) : null}
       </Dialog>
-    </section>
+    </div>
   );
 }

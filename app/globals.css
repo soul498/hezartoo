@@ -146,3 +146,46 @@
   --font-sans: var(--font-vazirmatn), "IRANSans", "IRANSansX", "Vazirmatn", ui-sans-serif, system-ui, sans-serif;
 }
 /* --- vibefarsi:font-end --- */
+
+/* Node graph: a dot field, wires that draw in, dots that fade in and pulse. */
+.graph-field {
+  background-image: radial-gradient(color-mix(in oklch, var(--foreground) 14%, transparent) 1px, transparent 1.5px);
+  background-size: 24px 24px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* Dashes on stretched non-scaling strokes render unevenly in Chrome, so wires fade instead of drawing. */
+  .graph-wire,
+  .graph-node {
+    animation: graph-in 300ms var(--motion-ease) var(--delay, 0ms) both;
+  }
+
+  .graph-pulse {
+    animation: graph-pulse 2400ms ease-out 1200ms infinite;
+  }
+}
+
+.graph-pulse {
+  opacity: 0;
+}
+
+@keyframes graph-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes graph-pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+  70%,
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}

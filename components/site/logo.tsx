@@ -15,17 +15,3 @@ export function Mark({ className }: { className?: string }) {
     </svg>
   );
 }
-
-export function Lockup({ className }: { className?: string }) {
-  return (
-    <figure className={cn("overflow-hidden rounded-surface border-line border-border bg-card shadow-surface", className)}>
-      <Mark className="h-auto w-full" />
-      <figcaption>
-        <p className="wordmark bg-foreground px-4 py-6 text-center text-3xl text-background">هزارتو</p>
-        <p className="bg-brand px-4 py-3 text-center text-sm font-semibold text-brand-foreground">
-          شرکت فناوری و نوآوری شناخت
-        </p>
-      </figcaption>
-    </figure>
-  );
-}
