@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { Stage } from "@/components/site/header";
-import { SectionGraph } from "@/components/site/section-graph";
 import { getSection, sections } from "@/lib/content";
 
 export const dynamicParams = false;
@@ -22,21 +20,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
+/** Drawn by `World` in the root layout; the page validates the slug and carries metadata. */
 export default async function Page({ params }: Props) {
-  const section = getSection((await params).section);
-  if (!section) notFound();
-
-  return (
-    <Stage
-      trail={[{ href: `/${section.id}`, label: section.label }]}
-      heading={
-        <div className="flex flex-col gap-1">
-          <h1 className="text-2xl md:text-3xl">{section.title}</h1>
-          <p className="max-w-2xl text-base text-foreground/85">{section.summary}</p>
-        </div>
-      }
-    >
-      <SectionGraph section={section} />
-    </Stage>
-  );
+  if (!getSection((await params).section)) notFound();
+  return null;
 }

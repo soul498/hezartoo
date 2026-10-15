@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { createPortal } from "react-dom";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
@@ -136,28 +137,33 @@ export function Contact() {
         </Button>
       </form>
 
-      <Dialog
-        open={open}
-        onOpenChange={setOpen}
-        title="پیام آماده است"
-        description="متن را کپی کنید و در اینستاگرام هزارتو بفرستید."
-        className="max-w-lg"
-        footer={
-          <>
-            <Button onClick={copy}>{copied ? "کپی شد" : "کپی متن"}</Button>
-            <ButtonLink href={instagramUrl} target="_blank" rel="noreferrer" variant="outline">
-              رفتن به اینستاگرام
-            </ButtonLink>
-          </>
-        }
-      >
-        <p className="whitespace-pre-wrap text-sm text-foreground">{composed}</p>
-        {copyError ? (
-          <Alert variant="destructive" title="کپی خودکار ممکن نشد" className="mt-4">
-            متن بالا را دستی انتخاب کنید و کپی بگیرید.
-          </Alert>
-        ) : null}
-      </Dialog>
+      {open
+        ? createPortal(
+            <Dialog
+              open={open}
+              onOpenChange={setOpen}
+              title="پیام آماده است"
+              description="متن را کپی کنید و در اینستاگرام هزارتو بفرستید."
+              className="max-w-lg"
+              footer={
+                <>
+                  <Button onClick={copy}>{copied ? "کپی شد" : "کپی متن"}</Button>
+                  <ButtonLink href={instagramUrl} target="_blank" rel="noreferrer" variant="outline">
+                    رفتن به اینستاگرام
+                  </ButtonLink>
+                </>
+              }
+            >
+              <p className="whitespace-pre-wrap text-sm text-foreground">{composed}</p>
+              {copyError ? (
+                <Alert variant="destructive" title="کپی خودکار ممکن نشد" className="mt-4">
+                  متن بالا را دستی انتخاب کنید و کپی بگیرید.
+                </Alert>
+              ) : null}
+            </Dialog>,
+            document.body,
+          )
+        : null}
     </div>
   );
 }

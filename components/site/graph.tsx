@@ -64,17 +64,6 @@ export function Wire({
   );
 }
 
-/** Small dot where a wire leaves the frame: the path keeps going, off the map. */
-export function Terminal({ at, delay = 0 }: { at: Point; delay?: number }) {
-  return (
-    <span
-      aria-hidden="true"
-      className="graph-node absolute size-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-foreground/40"
-      style={place(at, delay)}
-    />
-  );
-}
-
 /** A dot with its label underneath. The whole column is the link. */
 export function DotLink({
   href,
@@ -88,7 +77,7 @@ export function DotLink({
   external = false,
 }: {
   href: string;
-  at: Point;
+  at: Spot;
   label: ReactNode;
   ariaLabel: string;
   icon: LucideIcon;
@@ -136,41 +125,8 @@ export function DotLink({
     );
   }
   return (
-    <Link href={href} aria-label={ariaLabel} data-graph-node="" className={className} style={place(at, delay)}>
+    <Link href={href} scroll={false} aria-label={ariaLabel} data-graph-node="" className={className} style={place(at, delay)}>
       {content}
-    </Link>
-  );
-}
-
-/** The hub's four circles: label written inside the circle, as in the sketch. */
-export function RingLink({
-  href,
-  at,
-  label,
-  ariaLabel,
-  delay = 0,
-}: {
-  href: string;
-  at: Spot;
-  label: string;
-  ariaLabel: string;
-  delay?: number;
-}) {
-  return (
-    <Link
-      href={href}
-      aria-label={ariaLabel}
-      data-graph-node=""
-      className={cn(
-        "graph-node group absolute z-10 grid size-18 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full md:size-28",
-        focusRing,
-      )}
-      style={place(at, delay)}
-    >
-      <span aria-hidden="true" className="graph-pulse absolute inset-0 rounded-full border-2 border-brand" />
-      <span className="relative grid size-full place-items-center rounded-full border-2 border-brand bg-card px-2 text-center text-sm font-bold leading-normal text-foreground transition-all duration-(--motion) ease-motion group-hover:scale-105 group-hover:bg-brand group-hover:text-brand-foreground group-active:scale-95 md:text-lg">
-        {label}
-      </span>
     </Link>
   );
 }

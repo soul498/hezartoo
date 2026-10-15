@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { Shell } from "@/components/site/header";
-import { LeafView } from "@/components/site/leaf-view";
 import { getLeaf, sections } from "@/lib/content";
 
 export const dynamicParams = false;
@@ -25,19 +23,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
+/** Drawn by `World` in the root layout; the page validates the slug and carries metadata. */
 export default async function Page({ params }: Props) {
   const { section, node } = await params;
-  const found = getLeaf(section, node);
-  if (!found) notFound();
-
-  return (
-    <Shell
-      trail={[
-        { href: `/${found.section.id}`, label: found.section.label },
-        { href: `/${found.section.id}/${found.leaf.slug}`, label: found.leaf.label },
-      ]}
-    >
-      <LeafView section={found.section} leaf={found.leaf} />
-    </Shell>
-  );
+  if (!getLeaf(section, node)) notFound();
+  return null;
 }

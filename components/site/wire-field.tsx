@@ -60,32 +60,41 @@ export function WireField() {
     let last = 0;
     let width = 0;
     let height = 0;
+    const cache = new WeakMap<HTMLElement, Omit<Curve, "node">[]>();
+
+    /** Seeded by what the node links to, so a node keeps its wires while rooms mount and unmount. */
+    function curvesFor(el: HTMLElement): Omit<Curve, "node">[] {
+      const known = cache.get(el);
+      if (known) return known;
+      const key = `${el.getAttribute("href") ?? ""}|${el.dataset.graphNode ?? ""}|${el.closest("[data-room]")?.getAttribute("data-room") ?? ""}`;
+      let seed = 17;
+      for (let i = 0; i < key.length; i += 1) seed = (seed * 31 + key.charCodeAt(i)) | 0;
+      const rand = mulberry32(seed);
+      const center = el.dataset.graphNode === "center";
+      const count = center ? FAINT_PER_CENTER : FAINT_PER_NODE;
+      const made = Array.from({ length: count + 1 }, (_, i) => {
+        const primary = i === 0 && !center;
+        return {
+          angle: center ? (i / (count + 1)) * Math.PI * 2 + rand() * 0.4 : (rand() - 0.5) * (primary ? 0.5 : 1.6),
+          bow: (rand() - 0.5) * 0.5,
+          drift: 0.04 + rand() * 0.08,
+          phase: rand() * Math.PI * 2,
+          primary,
+          pulses: Array.from({ length: primary ? 2 : rand() > 0.5 ? 1 : 0 }, (_, k) => ({
+            t: (rand() + k * 0.5) % 1,
+            speed: 0.00005 + rand() * 0.00008,
+          })),
+        };
+      });
+      cache.set(el, made);
+      return made;
+    }
 
     function collect() {
       const found = Array.from(document.querySelectorAll<HTMLElement>("[data-graph-node]"));
       if (found.length === nodes.length && found.every((el, i) => el === nodes[i])) return;
       nodes = found;
-      const rand = mulberry32(found.length * 7919 + 17);
-      curves = [];
-      found.forEach((el, index) => {
-        const center = el.dataset.graphNode === "center";
-        const count = center ? FAINT_PER_CENTER : FAINT_PER_NODE;
-        for (let i = 0; i <= count; i += 1) {
-          const primary = i === 0 && !center;
-          curves.push({
-            node: index,
-            angle: center ? (i / (count + 1)) * Math.PI * 2 + rand() * 0.4 : (rand() - 0.5) * (primary ? 0.5 : 1.6),
-            bow: (rand() - 0.5) * 0.5,
-            drift: 0.04 + rand() * 0.08,
-            phase: rand() * Math.PI * 2,
-            primary,
-            pulses: Array.from({ length: primary ? 2 : rand() > 0.5 ? 1 : 0 }, (_, k) => ({
-              t: (rand() + k * 0.5) % 1,
-              speed: 0.00005 + rand() * 0.00008,
-            })),
-          });
-        }
-      });
+      curves = found.flatMap((el, index) => curvesFor(el).map((c) => Object.assign(c, { node: index }) as Curve));
     }
 
     function resize() {
@@ -100,10 +109,18 @@ export function WireField() {
     function draw(time: number, animate: boolean) {
       collect();
       ctx!.clearRect(0, 0, width, height);
-      const stage = document.querySelector<HTMLElement>("[data-graph-stage]")?.getBoundingClientRect();
-      const hub: Vec = stage
-        ? { x: stage.left + stage.width / 2, y: stage.top + stage.height / 2 }
-        : { x: width / 2, y: height / 2 };
+      const stages = new Map<Element, Vec>();
+      const hubOf = (el: HTMLElement): Vec => {
+        const stageEl = el.closest("[data-graph-stage]");
+        if (!stageEl) return { x: width / 2, y: height / 2 };
+        let at = stages.get(stageEl);
+        if (!at) {
+          const r = stageEl.getBoundingClientRect();
+          at = { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+          stages.set(stageEl, at);
+        }
+        return at;
+      };
       const anchors = nodes.map((el) => {
         const r = el.getBoundingClientRect();
         return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
@@ -112,6 +129,7 @@ export function WireField() {
       for (const curve of curves) {
         const from = anchors[curve.node];
         if (!from) continue;
+        const hub = hubOf(nodes[curve.node]);
         const outward = Math.atan2(from.y - hub.y, from.x - hub.x);
         const angle = nodes[curve.node].dataset.graphNode === "center" ? curve.angle : outward + curve.angle;
         const to = edgePoint(from, angle, width, height);

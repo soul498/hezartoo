@@ -1,10 +1,11 @@
 import Link from "next/link";
-import { Shell } from "@/components/site/header";
+import { Footer, Header } from "@/components/site/header";
 
 export default function NotFound() {
   return (
-    <Shell>
-      <div className="mx-auto flex w-full max-w-lg flex-1 flex-col justify-center gap-4 py-16">
+    <div className="graph-field flex min-h-dvh flex-col">
+      <Header />
+      <main id="content" className="mx-auto flex w-full max-w-lg flex-1 flex-col justify-center gap-4 px-4 py-16">
         <p className="text-sm text-muted-foreground">۴۰۴</p>
         <h1 className="text-3xl">این گره به جایی وصل نیست</h1>
         <p className="text-lg">صفحه‌ای که دنبالش بودید روی این نقشه نیست.</p>
@@ -14,7 +15,8 @@ export default function NotFound() {
         >
           بازگشت به گره مرکزی
         </Link>
-      </div>
-    </Shell>
+      </main>
+      <Footer />
+    </div>
   );
 }
