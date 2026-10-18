@@ -249,13 +249,35 @@
   scrollbar-gutter: stable;
 }
 
-/* The camera over the room map. Pans between rooms; snaps under reduced motion. */
+/*
+ * The camera over the room map: a pan with a quick start and a long settle, while the lens
+ * around it dips to 97% and back so both rooms read as places on one surface. Snaps under
+ * reduced motion.
+ */
 .world-camera {
-  transition: transform 800ms cubic-bezier(0.65, 0, 0.35, 1);
+  transition: transform 800ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.world-lens[data-panning] {
+  animation: lens-dip 800ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes lens-dip {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(0.97);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .world-camera {
     transition: none;
+  }
+
+  .world-lens[data-panning] {
+    animation: none;
   }
 }

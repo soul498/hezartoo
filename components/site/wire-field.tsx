@@ -240,6 +240,22 @@ export function WireField() {
       else start();
     }
 
+    // Under reduced motion nothing loops, so a room swap or a re-laid-out stage must redraw.
+    let pending = 0;
+    const mutations = new MutationObserver(() => {
+      if (!motion.matches || pending) return;
+      pending = requestAnimationFrame(() => {
+        pending = 0;
+        draw(0, false);
+      });
+    });
+    mutations.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ["style"],
+    });
+
     resize();
     start();
     window.addEventListener("resize", onResize);
@@ -251,6 +267,8 @@ export function WireField() {
     motion.addEventListener("change", start);
     return () => {
       cancelAnimationFrame(frame);
+      cancelAnimationFrame(pending);
+      mutations.disconnect();
       window.removeEventListener("resize", onResize);
       window.removeEventListener("scroll", redrawStatic, { capture: true });
       document.removeEventListener("visibilitychange", onVisibility);
