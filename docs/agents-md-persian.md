@@ -73,6 +73,12 @@ every file you touch, without being reminded.
 - Grep the diff for `ml-|mr-|pl-|pr-|left-|right-|text-left|text-right|space-x`.
 - Check every visible number is Persian and every date is Jalali.
 - Read every new string aloud in Persian: would an Iranian product ship it?
+- After every visual change, capture screenshots of each changed screen at
+  desktop (~1440px) and mobile (~390px), save them under `/tmp/…` or
+  `/opt/cursor/artifacts/`, and include those images with their absolute paths
+  in the final reply to the user.
+  پس از هر اصلاح بصری، از صفحه‌های تغییرکرده در دسکتاپ (~۱۴۴۰) و موبایل (~۳۹۰)
+  اسکرین‌شات بگیرید و همان تصویرها را با مسیرشان در پاسخ نهایی بگذارید.
 
 ---
 

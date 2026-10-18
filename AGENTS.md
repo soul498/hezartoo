@@ -69,4 +69,10 @@ file you touch, without being reminded. Full guides: `docs/agents-md-persian.md`
 - Grep the diff for `ml-|mr-|pl-|pr-|left-|right-|text-left|text-right|space-x|\[[0-9]+px\]|#[0-9a-fA-F]{3,6}`.
 - Every visible number Persian, every date Jalali, every image sized.
 - Read every new string aloud in Persian: would an Iranian product ship it?
+- After every visual change, capture screenshots of each changed screen at
+  desktop (~1440px wide) and mobile (~390px wide), save them under `/tmp/…`
+  or `/opt/cursor/artifacts/`, and include those images, with their absolute
+  paths, in the final reply to the user. A visual change is not done without them.
+  (پس از هر اصلاح بصری، از صفحه‌های تغییرکرده در دسکتاپ ~۱۴۴۰ و موبایل ~۳۹۰
+  اسکرین‌شات بگیرید و همان تصویرها را با مسیرشان در پاسخ نهایی بگذارید.)
 <!-- vibefarsi:rules:end -->
