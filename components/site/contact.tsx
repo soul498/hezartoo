@@ -76,12 +76,12 @@ export function Contact() {
   }
 
   return (
-    <div id="contact">
-      <Alert variant="info" title="این صفحه پیام را ذخیره نمی‌کند" className="mb-6">
-        نسخه‌ی نمایشی سرور ندارد. بعد از نوشتن، متن کپی می‌شود تا در اینستاگرام بفرستید.
-      </Alert>
+    <div id="contact" className="w-full text-start">
+      <p className="mb-6 text-sm text-foreground/80">
+        این صفحه پیام را ذخیره نمی‌کند و سرور ندارد. بعد از نوشتن، متن کپی می‌شود تا در اینستاگرام بفرستید.
+      </p>
 
-      <form onSubmit={onSubmit} className="grid max-w-2xl gap-4" noValidate>
+      <form onSubmit={onSubmit} className="grid w-full gap-4" noValidate>
         <Field label="نام" htmlFor="name">
           <Input
             id="name"

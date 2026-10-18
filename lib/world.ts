@@ -109,20 +109,13 @@ export function neighborsOf(room: Room): Neighbor[] {
   ];
 }
 
-/** Links of the map: hub to sections, sections to their leaves. */
-export const mapLinks: [Room, Room][] = rooms.flatMap((room): [Room, Room][] => {
-  if (room.kind === "section") return [[hubRoom, room]];
-  if (room.kind === "leaf") {
-    const parent = rooms.find((r) => r.kind === "section" && r.section.id === room.section.id)!;
-    return [[parent, room]];
-  }
-  return [];
-});
-
 export type Placed = Neighbor & { slot: number };
 
-/** Even fan around a page's centre: never fewer than the four arms of a cross, slot 0 on top, clockwise. */
-export type Arrangement = { slots: number; placed: Placed[] };
+/**
+ * Even fan around a page's centre: never fewer than the four arms of a cross, slot 0 on top,
+ * clockwise. `free` lists the slots no neighbour took, for a leaf's link circles.
+ */
+export type Arrangement = { slots: number; placed: Placed[]; free: number[] };
 
 const weight: Record<Neighbor["role"], number> = { parent: 4, home: 2, child: 1, sibling: 1 };
 
@@ -141,9 +134,9 @@ function gap(a: number, b: number) {
  * they lead on the map, return dots (parent, then «خانه») first, so a click pans the camera the
  * way the dot points wherever the cross allows it.
  */
-export function arrange(room: Room): Arrangement {
+export function arrange(room: Room, extra = 0): Arrangement {
   const neighbors = neighborsOf(room);
-  const slots = Math.max(4, neighbors.length);
+  const slots = Math.max(4, neighbors.length + extra);
   const step = (Math.PI * 2) / slots;
   const cost = neighbors.map((n) =>
     Array.from({ length: slots }, (_, k) => weight[n.role] * gap(bearing(room.pos, n.room.pos), k * step)),
@@ -171,5 +164,6 @@ export function arrange(room: Room): Arrangement {
   };
   walk(0, 0);
 
-  return { slots, placed: neighbors.map((n, i) => ({ ...n, slot: best[i] })) };
+  const free = Array.from({ length: slots }, (_, k) => k).filter((k) => !best.includes(k));
+  return { slots, placed: neighbors.map((n, i) => ({ ...n, slot: best[i] })), free };
 }

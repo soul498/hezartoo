@@ -16,7 +16,8 @@ export type Leaf = {
   facts?: { label: string; value: string }[];
   people?: { name: string; role: string }[];
   items?: { title: string; body: string }[];
-  links?: { href: string; label: string; external?: boolean }[];
+  /** Drawn as extra circles around the leaf; `short` goes inside the circle, `label` is its accessible name. */
+  links?: { href: string; short: string; label: string; external?: boolean }[];
   contact?: boolean;
 };
 
@@ -30,8 +31,8 @@ export type Section = {
 };
 
 const followLinks = [
-  { href: instagramUrl, label: "اینستاگرام هزارتو", external: true },
-  { href: linkedinUrl, label: "لینکدین هزارتو", external: true },
+  { href: instagramUrl, short: "اینستاگرام", label: "اینستاگرام هزارتو، در صفحه‌ی تازه", external: true },
+  { href: linkedinUrl, short: "لینکدین", label: "لینکدین هزارتو، در صفحه‌ی تازه", external: true },
 ];
 
 export const sections: Section[] = [
@@ -69,7 +70,14 @@ export const sections: Section[] = [
         body: [
           "تاریخ و موضوع رویداد بعدی هنوز اعلام نشده است. خبرش اول در اینستاگرام هزارتو منتشر می‌شود.",
         ],
-        links: [{ href: instagramUrl, label: "دنبال کردن در اینستاگرام", external: true }],
+        links: [
+          {
+            href: instagramUrl,
+            short: "اینستاگرام",
+            label: "دنبال کردن هزارتو در اینستاگرام، در صفحه‌ی تازه",
+            external: true,
+          },
+        ],
       },
     ],
   },
@@ -155,7 +163,7 @@ export const sections: Section[] = [
         body: [
           "هزارتو با مدرسه‌ها، مراکز پژوهشی و خانه‌های نوآوری همکاری می‌کند. اگر از طرف یکی از این مجموعه‌ها می‌نویسید، از گره تماس پیام بدهید.",
         ],
-        links: [{ href: "/about/contact", label: "رفتن به گره تماس" }],
+        links: [{ href: "/about/contact", short: "تماس", label: "رفتن به گره تماس" }],
       },
     ],
   },

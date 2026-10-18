@@ -17,7 +17,6 @@ type Curve = {
 };
 
 const FAINT_PER_NODE = 4;
-const FAINT_PER_CENTER = 9;
 
 function edgePoint(from: Vec, angle: number, w: number, h: number): Vec {
   const dx = Math.cos(angle);
@@ -38,8 +37,10 @@ function cubic(p0: Vec, p1: Vec, p2: Vec, p3: Vec, t: number): Vec {
 }
 
 /**
- * Full-viewport canvas of faint wires running from every `[data-graph-node]` to the screen edges,
- * with signal pulses travelling outward. Static under prefers-reduced-motion, paused when hidden.
+ * Full-viewport canvas of the only wires on a page: each `[data-graph-node]` circle sends one
+ * brand wire and a few faint ones from its rim outward to the screen edge, away from the centre
+ * of its stage, with signal pulses travelling out. Nothing is drawn between the centre and the
+ * circles. Static under prefers-reduced-motion, paused when hidden.
  */
 export function WireField() {
   const ref = useRef<HTMLCanvasElement>(null);
@@ -70,13 +71,11 @@ export function WireField() {
       let seed = 17;
       for (let i = 0; i < key.length; i += 1) seed = (seed * 31 + key.charCodeAt(i)) | 0;
       const rand = mulberry32(seed);
-      const center = el.dataset.graphNode === "center";
-      const count = center ? FAINT_PER_CENTER : FAINT_PER_NODE;
-      const made = Array.from({ length: count + 1 }, (_, i) => {
-        const primary = i === 0 && !center;
+      const made = Array.from({ length: FAINT_PER_NODE + 1 }, (_, i) => {
+        const primary = i === 0;
         return {
-          angle: center ? (i / (count + 1)) * Math.PI * 2 + rand() * 0.4 : (rand() - 0.5) * (primary ? 0.5 : 1.6),
-          bow: (rand() - 0.5) * 0.5,
+          angle: (rand() - 0.5) * (primary ? 0.4 : 1.4),
+          bow: (rand() - 0.5) * 0.3,
           drift: 0.04 + rand() * 0.08,
           phase: rand() * Math.PI * 2,
           primary,
@@ -91,9 +90,7 @@ export function WireField() {
     }
 
     function collect() {
-      const found = Array.from(document.querySelectorAll<HTMLElement>("[data-graph-node]")).filter(
-        (el) => !el.closest("[data-world-dimmed]"),
-      );
+      const found = Array.from(document.querySelectorAll<HTMLElement>("[data-graph-node]:not([data-graph-node='center'])"));
       if (found.length === nodes.length && found.every((el, i) => el === nodes[i])) return;
       nodes = found;
       curves = found.flatMap((el, index) => curvesFor(el).map((c) => Object.assign(c, { node: index }) as Curve));
@@ -125,15 +122,15 @@ export function WireField() {
       };
       const anchors = nodes.map((el) => {
         const r = el.getBoundingClientRect();
-        return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+        return { x: r.left + r.width / 2, y: r.top + r.height / 2, rim: Math.max(r.width, r.height) / 2 + 2 };
       });
 
       for (const curve of curves) {
-        const from = anchors[curve.node];
-        if (!from) continue;
+        const anchor = anchors[curve.node];
+        if (!anchor) continue;
         const hub = hubOf(nodes[curve.node]);
-        const outward = Math.atan2(from.y - hub.y, from.x - hub.x);
-        const angle = nodes[curve.node].dataset.graphNode === "center" ? curve.angle : outward + curve.angle;
+        const angle = Math.atan2(anchor.y - hub.y, anchor.x - hub.x) + curve.angle;
+        const from = { x: anchor.x + Math.cos(angle) * anchor.rim, y: anchor.y + Math.sin(angle) * anchor.rim };
         const to = edgePoint(from, angle, width, height);
         const dx = to.x - from.x;
         const dy = to.y - from.y;
@@ -150,7 +147,7 @@ export function WireField() {
         ctx!.moveTo(from.x, from.y);
         ctx!.bezierCurveTo(p1.x, p1.y, p2.x, p2.y, to.x, to.y);
         ctx!.strokeStyle = curve.primary ? brand : ink;
-        ctx!.globalAlpha = curve.primary ? 0.34 : 0.1;
+        ctx!.globalAlpha = curve.primary ? 0.5 : 0.12;
         ctx!.lineWidth = curve.primary ? 1.5 : 1;
         ctx!.stroke();
 
@@ -211,13 +208,13 @@ export function WireField() {
     resize();
     start();
     window.addEventListener("resize", onResize);
-    window.addEventListener("scroll", redrawStatic, { passive: true });
+    window.addEventListener("scroll", redrawStatic, { passive: true, capture: true });
     document.addEventListener("visibilitychange", onVisibility);
     motion.addEventListener("change", start);
     return () => {
       cancelAnimationFrame(frame);
       window.removeEventListener("resize", onResize);
-      window.removeEventListener("scroll", redrawStatic);
+      window.removeEventListener("scroll", redrawStatic, { capture: true });
       document.removeEventListener("visibilitychange", onVisibility);
       motion.removeEventListener("change", start);
     };

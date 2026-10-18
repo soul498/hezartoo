@@ -246,45 +246,21 @@
   text-wrap: balance;
 }
 
+/* A leaf that outgrows the screen scrolls; the bar stays a hairline, not a frame. */
+.room-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
+  /* Growing the stage must not change its width, or the grow check resets and loops. */
+  scrollbar-gutter: stable;
+}
+
 /* The camera over the room map. Pans between rooms; snaps under reduced motion. */
 .world-camera {
-  transform-origin: 0 0;
-  transition:
-    transform 800ms cubic-bezier(0.65, 0, 0.35, 1),
-    opacity 800ms cubic-bezier(0.65, 0, 0.35, 1);
-}
-
-.world-camera[data-world-dimmed] {
-  opacity: 0.12;
-}
-
-/* Header and footer step aside while the map overview has the screen. */
-.world-chrome {
-  transition: opacity 300ms ease-out;
-}
-
-.world-chrome[data-world-dimmed] {
-  opacity: 0;
-}
-
-/* Map overview fades in once the camera has mostly zoomed out, and out at once on close. */
-.map-overview {
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 200ms ease-out;
-}
-
-.map-overview[data-open] {
-  opacity: 1;
-  pointer-events: auto;
-  transition: opacity 300ms ease-out 450ms;
+  transition: transform 800ms cubic-bezier(0.65, 0, 0.35, 1);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .world-camera,
-  .world-chrome,
-  .map-overview,
-  .map-overview[data-open] {
+  .world-camera {
     transition: none;
   }
 }
