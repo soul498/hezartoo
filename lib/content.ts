@@ -39,7 +39,7 @@ export const sections: Section[] = [
     leaves: [
       {
         slug: "hoosh",
-        label: "هوش؛ از انسان تا کامپیوتر",
+        label: "نشست هوش",
         title: "هوش؛ از انسان تا کامپیوتر",
         status: "برگزار شد",
         body: [

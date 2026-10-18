@@ -7,7 +7,8 @@ import { Contact } from "@/components/site/contact";
 import { Logo } from "@/components/site/logo";
 import { MapRoom } from "@/components/site/map-room";
 import type { Leaf } from "@/lib/content";
-import { arrange, type Placed, type Room } from "@/lib/world";
+import { useWorldModel } from "@/components/site/world-model";
+import { arrange, roomForPath, type Placed, type Room } from "@/lib/world";
 
 function ariaFor(p: Placed) {
   const r = p.room;
@@ -19,9 +20,12 @@ function ariaFor(p: Placed) {
 }
 
 function useDots(room: Room) {
+  const world = useWorldModel();
   return useMemo(() => {
-    const links = room.kind === "leaf" ? (room.leaf.links ?? []) : [];
-    const { slots, placed, free } = arrange(room, links.length);
+    const links = (room.kind === "leaf" ? (room.leaf.links ?? []) : []).filter(
+      (link) => roomForPath(world, link.href),
+    );
+    const { slots, placed, free } = arrange(world, room, links.length);
     const dots = placed.map((p): ConstellationDot => ({
       key: p.room.path,
       href: p.room.path,
@@ -41,7 +45,7 @@ function useDots(room: Room) {
       });
     });
     return { slots, dots };
-  }, [room]);
+  }, [world, room]);
 }
 
 function HubCenter() {

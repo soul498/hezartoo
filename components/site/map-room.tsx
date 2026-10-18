@@ -1,9 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import { useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 import { CircleInner, circleClass } from "@/components/site/constellation";
-import { mapBounds, rooms, type Room, type Vec } from "@/lib/world";
+import { NodeLink, useWorldModel } from "@/components/site/world-model";
+import type { Room, Vec } from "@/lib/world";
 
 const EDGE = 4;
 const GAP = 8;
@@ -26,6 +26,7 @@ function ariaOf(room: Room) {
  * the roomier axis, so circles keep their size and never overlap.
  */
 export function MapRoom({ heading: Heading }: { heading: "h1" | "p" }) {
+  const { rooms, bounds: mapBounds } = useWorldModel();
   const stageRef = useRef<HTMLElement>(null);
   const circleRefs = useRef<(HTMLAnchorElement | null)[]>([]);
   const [points, setPoints] = useState<Vec[] | null>(null);
@@ -95,7 +96,7 @@ export function MapRoom({ heading: Heading }: { heading: "h1" | "p" }) {
     observer.observe(stage);
     document.fonts?.ready.then(measure).catch(() => {});
     return () => observer.disconnect();
-  }, []);
+  }, [rooms, mapBounds]);
 
   return (
     <div className="flex h-full flex-col p-2 sm:p-4">
@@ -121,10 +122,9 @@ export function MapRoom({ heading: Heading }: { heading: "h1" | "p" }) {
               : { left: "50%", top: "50%", visibility: "hidden" }
           ) as CSSProperties;
           return (
-            <Link
+            <NodeLink
               key={room.path}
               href={room.path}
-              scroll={false}
               aria-label={ariaOf(room)}
               aria-current={room.kind === "map" ? "page" : undefined}
               data-map-node=""
@@ -137,7 +137,7 @@ export function MapRoom({ heading: Heading }: { heading: "h1" | "p" }) {
               <CircleInner tone={room.kind === "map" ? "return" : tone}>
                 <bdi>{labelOf(room)}</bdi>
               </CircleInner>
-            </Link>
+            </NodeLink>
           );
         })}
       </nav>

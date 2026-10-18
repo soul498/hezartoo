@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import {
   useLayoutEffect,
   useRef,
@@ -8,6 +7,7 @@ import {
   type CSSProperties,
   type ReactNode,
 } from "react";
+import { NodeLink } from "@/components/site/world-model";
 import { cn } from "@/lib/utils";
 
 export type ConstellationDot = {
@@ -247,10 +247,9 @@ export function Constellation({
               top: `calc(50% - ${Math.cos(theta).toFixed(3)} * (50% - 3.5rem))`,
             };
         return (
-          <Link
+          <NodeLink
             key={dot.key}
             href={dot.href}
-            scroll={false}
             aria-label={dot.ariaLabel}
             data-graph-node=""
             className={circleClass(dot.tone)}
@@ -262,7 +261,7 @@ export function Constellation({
             }}
           >
             <CircleInner tone={dot.tone}>{dot.label}</CircleInner>
-          </Link>
+          </NodeLink>
         );
       })}
     </nav>
