@@ -4,8 +4,10 @@ import { cn } from "@/lib/utils";
 type Variant = "default" | "outline" | "ghost";
 
 const variants: Record<Variant, string> = {
-  default: "h-12 bg-primary px-6 text-base text-primary-foreground hover:bg-primary/90",
-  outline: "h-12 border-line border-input bg-transparent px-6 text-base hover:bg-accent",
+  default:
+    "h-12 bg-primary px-6 text-base text-primary-foreground hover:bg-primary/90",
+  outline:
+    "h-12 border-line border-input bg-transparent px-6 text-base hover:bg-accent",
   ghost: "h-11 px-4 text-sm hover:bg-accent",
 };
 

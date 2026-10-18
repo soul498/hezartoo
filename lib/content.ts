@@ -1,5 +1,4 @@
 export const instagramUrl = "https://www.instagram.com/hezartoovr/";
-export const linkedinUrl = "https://www.linkedin.com/company/hezartooco";
 
 /** Physical side of the hub the section hangs from. Not flipped by RTL. */
 export type Side = "top" | "bottom" | "left" | "right";
@@ -16,8 +15,8 @@ export type Leaf = {
   facts?: { label: string; value: string }[];
   people?: { name: string; role: string }[];
   items?: { title: string; body: string }[];
-  /** Drawn as extra circles around the leaf; `short` goes inside the circle, `label` is its accessible name. */
-  links?: { href: string; short: string; label: string; external?: boolean }[];
+  /** Other pages drawn as extra circles around the leaf; `short` goes inside the circle, `label` is its accessible name. */
+  links?: { href: string; short: string; label: string }[];
   contact?: boolean;
 };
 
@@ -29,11 +28,6 @@ export type Section = {
   summary: string;
   leaves: Leaf[];
 };
-
-const followLinks = [
-  { href: instagramUrl, short: "اینستاگرام", label: "اینستاگرام هزارتو، در صفحه‌ی تازه", external: true },
-  { href: linkedinUrl, short: "لینکدین", label: "لینکدین هزارتو، در صفحه‌ی تازه", external: true },
-];
 
 export const sections: Section[] = [
   {
@@ -58,8 +52,14 @@ export const sections: Section[] = [
           { label: "همراه", value: "پارک علم و فناوری گلستان" },
         ],
         people: [
-          { name: "امیرحسین فیضی", role: "پژوهشگر و کاندیدای دکتری علوم اعصاب شناختی" },
-          { name: "مهرشاد عیسایی", role: "پژوهشگر بینایی ماشین و پردازش زبان طبیعی" },
+          {
+            name: "امیرحسین فیضی",
+            role: "پژوهشگر و کاندیدای دکتری علوم اعصاب شناختی",
+          },
+          {
+            name: "مهرشاد عیسایی",
+            role: "پژوهشگر بینایی ماشین و پردازش زبان طبیعی",
+          },
         ],
       },
       {
@@ -70,14 +70,6 @@ export const sections: Section[] = [
         body: [
           "تاریخ و موضوع رویداد بعدی هنوز اعلام نشده است. خبرش اول در اینستاگرام هزارتو منتشر می‌شود.",
         ],
-        links: [
-          {
-            href: instagramUrl,
-            short: "اینستاگرام",
-            label: "دنبال کردن هزارتو در اینستاگرام، در صفحه‌ی تازه",
-            external: true,
-          },
-        ],
       },
     ],
   },
@@ -86,7 +78,8 @@ export const sections: Section[] = [
     side: "bottom",
     label: "درباره ما",
     title: "درباره‌ی هزارتو",
-    summary: "شرکت فناوری و نوآوری شناخت؛ این‌که چه می‌سازد و چطور می‌شود با آن حرف زد.",
+    summary:
+      "شرکت فناوری و نوآوری شناخت؛ این‌که چه می‌سازد و چطور می‌شود با آن حرف زد.",
     leaves: [
       {
         slug: "intro",
@@ -138,7 +131,8 @@ export const sections: Section[] = [
     side: "left",
     label: "آموزش",
     title: "آموزش",
-    summary: "یادگیری‌ای که داخلش می‌شود راه رفت، بازی کرد و دوباره امتحان کرد.",
+    summary:
+      "یادگیری‌ای که داخلش می‌شود راه رفت، بازی کرد و دوباره امتحان کرد.",
     leaves: [
       {
         slug: "vr",
@@ -163,7 +157,9 @@ export const sections: Section[] = [
         body: [
           "هزارتو با مدرسه‌ها، مراکز پژوهشی و خانه‌های نوآوری همکاری می‌کند. اگر از طرف یکی از این مجموعه‌ها می‌نویسید، از گره تماس پیام بدهید.",
         ],
-        links: [{ href: "/about/contact", short: "تماس", label: "رفتن به گره تماس" }],
+        links: [
+          { href: "/about/contact", short: "تماس", label: "رفتن به گره تماس" },
+        ],
       },
     ],
   },
@@ -183,7 +179,6 @@ export const sections: Section[] = [
           "یکی از دو پروژه‌ی شاخص هزارتو که هنوز در حال ساخت است. شرح محصول هنوز منتشر نشده و این‌جا چیزی از خودمان به آن اضافه نمی‌کنیم.",
           "خبر رونمایی را از اینستاگرام و لینکدین هزارتو دنبال کنید.",
         ],
-        links: followLinks,
       },
       {
         slug: "anavia",
@@ -194,7 +189,6 @@ export const sections: Section[] = [
           "دومین پروژه‌ی شاخص هزارتو، آن هم در حال ساخت. تا وقتی جزئیاتش منتشر نشود، همین قدر می‌دانیم که در دامنه‌ی کار شرکت است: واقعیت مجازی آموزشی و شناختی، رسانه‌ی هوشمند و روایت تعاملی.",
           "خبر رونمایی را از اینستاگرام و لینکدین هزارتو دنبال کنید.",
         ],
-        links: followLinks,
       },
       {
         slug: "media",

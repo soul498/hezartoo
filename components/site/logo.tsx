@@ -17,7 +17,13 @@ export function LogoMark({ className }: { className?: string }) {
 }
 
 /** The full official logo: mark, wordmark «هزارتو», and the company band. */
-export function Logo({ className, priority = false }: { className?: string; priority?: boolean }) {
+export function Logo({
+  className,
+  priority = false,
+}: {
+  className?: string;
+  priority?: boolean;
+}) {
   return (
     <Image
       src={asset("/hezartoo-logo.png")}

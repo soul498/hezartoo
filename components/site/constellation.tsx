@@ -20,7 +20,6 @@ export type ConstellationDot = {
   slot: number;
   /** Children are drawn in brand; return circles (parent, «خانه») are quieter, same shape. */
   tone: "child" | "return";
-  external?: boolean;
 };
 
 type Orient = "column" | "row";
@@ -247,51 +246,58 @@ export function Constellation({
               left: `calc(50% + ${Math.sin(theta).toFixed(3)} * (50% - 3.5rem))`,
               top: `calc(50% - ${Math.cos(theta).toFixed(3)} * (50% - 3.5rem))`,
             };
-        const className = cn(
-          "graph-node group absolute z-10 grid aspect-square min-w-16 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border-2 p-2 text-center transition-colors duration-(--motion) ease-motion sm:min-w-20 sm:p-3 md:min-w-24 short:min-w-16 short:p-2",
-          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-4 focus-visible:ring-offset-background",
-          dot.tone === "child"
-            ? "border-brand text-foreground hover:text-brand"
-            : "border-brand/50 text-foreground/85 hover:border-brand hover:text-brand",
-        );
-        const content = (
-          <>
-            {dot.tone === "child" ? (
-              <span
-                aria-hidden="true"
-                className="graph-pulse absolute -inset-0.5 rounded-full border-2 border-brand"
-              />
-            ) : null}
-            <span className="relative w-max max-w-16 text-xs font-bold leading-snug sm:max-w-24 sm:text-base md:max-w-28 short:max-w-20 short:text-xs">
-              {dot.label}
-            </span>
-          </>
-        );
-        const common = {
-          "aria-label": dot.ariaLabel,
-          "data-graph-node": "",
-          className,
-          style: { ...style, "--delay": `${200 + i * 100}ms` } as CSSProperties,
-          ref: (el: HTMLElement | null) => {
-            circleRefs.current[i] = el;
-          },
-        };
-        return dot.external ? (
-          <a
+        return (
+          <Link
             key={dot.key}
             href={dot.href}
-            target="_blank"
-            rel="noreferrer"
-            {...common}
+            scroll={false}
+            aria-label={dot.ariaLabel}
+            data-graph-node=""
+            className={circleClass(dot.tone)}
+            style={
+              { ...style, "--delay": `${200 + i * 100}ms` } as CSSProperties
+            }
+            ref={(el) => {
+              circleRefs.current[i] = el;
+            }}
           >
-            {content}
-          </a>
-        ) : (
-          <Link key={dot.key} href={dot.href} scroll={false} {...common}>
-            {content}
+            <CircleInner tone={dot.tone}>{dot.label}</CircleInner>
           </Link>
         );
       })}
     </nav>
+  );
+}
+
+/** The one circle every page and the map draw: hollow, title inside, centred on its point. */
+export function circleClass(tone: ConstellationDot["tone"]) {
+  return cn(
+    "graph-node group absolute z-10 grid aspect-square min-w-16 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border-2 p-2 text-center transition-colors duration-(--motion) ease-motion sm:min-w-20 sm:p-3 md:min-w-24 short:min-w-16 short:p-2",
+    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-4 focus-visible:ring-offset-background",
+    tone === "child"
+      ? "border-brand text-foreground hover:text-brand"
+      : "border-brand/50 text-foreground/85 hover:border-brand hover:text-brand",
+  );
+}
+
+export function CircleInner({
+  tone,
+  children,
+}: {
+  tone: ConstellationDot["tone"];
+  children: ReactNode;
+}) {
+  return (
+    <>
+      {tone === "child" ? (
+        <span
+          aria-hidden="true"
+          className="graph-pulse absolute -inset-0.5 rounded-full border-2 border-brand"
+        />
+      ) : null}
+      <span className="relative w-max max-w-16 text-xs font-bold leading-snug sm:max-w-24 sm:text-base md:max-w-28 short:max-w-20 short:text-xs">
+        {children}
+      </span>
+    </>
   );
 }

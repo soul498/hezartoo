@@ -33,7 +33,10 @@ function cubic(p0: Vec, p1: Vec, p2: Vec, p3: Vec, t: number): Vec {
   const b = 3 * u * u * t;
   const c = 3 * u * t * t;
   const d = t * t * t;
-  return { x: a * p0.x + b * p1.x + c * p2.x + d * p3.x, y: a * p0.y + b * p1.y + c * p2.y + d * p3.y };
+  return {
+    x: a * p0.x + b * p1.x + c * p2.x + d * p3.x,
+    y: a * p0.y + b * p1.y + c * p2.y + d * p3.y,
+  };
 }
 
 /**
@@ -69,7 +72,8 @@ export function WireField() {
       if (known) return known;
       const key = `${el.getAttribute("href") ?? ""}|${el.dataset.graphNode ?? ""}|${el.closest("[data-room]")?.getAttribute("data-room") ?? ""}`;
       let seed = 17;
-      for (let i = 0; i < key.length; i += 1) seed = (seed * 31 + key.charCodeAt(i)) | 0;
+      for (let i = 0; i < key.length; i += 1)
+        seed = (seed * 31 + key.charCodeAt(i)) | 0;
       const rand = mulberry32(seed);
       const made = Array.from({ length: FAINT_PER_NODE + 1 }, (_, i) => {
         const primary = i === 0;
@@ -79,10 +83,13 @@ export function WireField() {
           drift: 0.04 + rand() * 0.08,
           phase: rand() * Math.PI * 2,
           primary,
-          pulses: Array.from({ length: primary ? 2 : rand() > 0.5 ? 1 : 0 }, (_, k) => ({
-            t: (rand() + k * 0.5) % 1,
-            speed: 0.00005 + rand() * 0.00008,
-          })),
+          pulses: Array.from(
+            { length: primary ? 2 : rand() > 0.5 ? 1 : 0 },
+            (_, k) => ({
+              t: (rand() + k * 0.5) % 1,
+              speed: 0.00005 + rand() * 0.00008,
+            }),
+          ),
         };
       });
       cache.set(el, made);
@@ -90,10 +97,20 @@ export function WireField() {
     }
 
     function collect() {
-      const found = Array.from(document.querySelectorAll<HTMLElement>("[data-graph-node]:not([data-graph-node='center'])"));
-      if (found.length === nodes.length && found.every((el, i) => el === nodes[i])) return;
+      const found = Array.from(
+        document.querySelectorAll<HTMLElement>(
+          "[data-graph-node]:not([data-graph-node='center'])",
+        ),
+      );
+      if (
+        found.length === nodes.length &&
+        found.every((el, i) => el === nodes[i])
+      )
+        return;
       nodes = found;
-      curves = found.flatMap((el, index) => curvesFor(el).map((c) => Object.assign(c, { node: index }) as Curve));
+      curves = found.flatMap((el, index) =>
+        curvesFor(el).map((c) => Object.assign(c, { node: index }) as Curve),
+      );
     }
 
     function resize() {
@@ -122,15 +139,23 @@ export function WireField() {
       };
       const anchors = nodes.map((el) => {
         const r = el.getBoundingClientRect();
-        return { x: r.left + r.width / 2, y: r.top + r.height / 2, rim: Math.max(r.width, r.height) / 2 + 2 };
+        return {
+          x: r.left + r.width / 2,
+          y: r.top + r.height / 2,
+          rim: Math.max(r.width, r.height) / 2 + 2,
+        };
       });
 
       for (const curve of curves) {
         const anchor = anchors[curve.node];
         if (!anchor) continue;
         const hub = hubOf(nodes[curve.node]);
-        const angle = Math.atan2(anchor.y - hub.y, anchor.x - hub.x) + curve.angle;
-        const from = { x: anchor.x + Math.cos(angle) * anchor.rim, y: anchor.y + Math.sin(angle) * anchor.rim };
+        const angle =
+          Math.atan2(anchor.y - hub.y, anchor.x - hub.x) + curve.angle;
+        const from = {
+          x: anchor.x + Math.cos(angle) * anchor.rim,
+          y: anchor.y + Math.sin(angle) * anchor.rim,
+        };
         const to = edgePoint(from, angle, width, height);
         const dx = to.x - from.x;
         const dy = to.y - from.y;
@@ -138,10 +163,19 @@ export function WireField() {
         if (len < 8) continue;
         const nx = -dy / len;
         const ny = dx / len;
-        const sway = animate ? Math.sin(time * 0.00025 * (1 + curve.drift * 4) + curve.phase) * curve.drift : 0;
+        const sway = animate
+          ? Math.sin(time * 0.00025 * (1 + curve.drift * 4) + curve.phase) *
+            curve.drift
+          : 0;
         const bend = (curve.bow + sway) * len;
-        const p1 = { x: from.x + dx * 0.33 + nx * bend, y: from.y + dy * 0.33 + ny * bend };
-        const p2 = { x: from.x + dx * 0.66 - nx * bend * 0.6, y: from.y + dy * 0.66 - ny * bend * 0.6 };
+        const p1 = {
+          x: from.x + dx * 0.33 + nx * bend,
+          y: from.y + dy * 0.33 + ny * bend,
+        };
+        const p2 = {
+          x: from.x + dx * 0.66 - nx * bend * 0.6,
+          y: from.y + dy * 0.66 - ny * bend * 0.6,
+        };
 
         ctx!.beginPath();
         ctx!.moveTo(from.x, from.y);
@@ -160,7 +194,8 @@ export function WireField() {
             if (t < 0) continue;
             const p = cubic(from, p1, p2, to, t);
             const head = s === 0;
-            ctx!.globalAlpha = (head ? 0.9 : 0.45 * (1 - s / steps)) * (curve.primary ? 1 : 0.6);
+            ctx!.globalAlpha =
+              (head ? 0.9 : 0.45 * (1 - s / steps)) * (curve.primary ? 1 : 0.6);
             ctx!.fillStyle = brand;
             ctx!.shadowColor = brand;
             ctx!.shadowBlur = head ? 12 : 0;
@@ -208,7 +243,10 @@ export function WireField() {
     resize();
     start();
     window.addEventListener("resize", onResize);
-    window.addEventListener("scroll", redrawStatic, { passive: true, capture: true });
+    window.addEventListener("scroll", redrawStatic, {
+      passive: true,
+      capture: true,
+    });
     document.addEventListener("visibilitychange", onVisibility);
     motion.addEventListener("change", start);
     return () => {

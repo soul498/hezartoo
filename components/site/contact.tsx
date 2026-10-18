@@ -18,7 +18,9 @@ type Errors = {
   message?: string;
 };
 
-const topicLabel = Object.fromEntries(topics.map((item) => [item.value, item.label]));
+const topicLabel = Object.fromEntries(
+  topics.map((item) => [item.value, item.label]),
+);
 
 export function Contact() {
   const [name, setName] = useState("");
@@ -50,7 +52,8 @@ export function Contact() {
       next.email = "ایمیل را مثل name@example.com بنویسید.";
     }
     if (!topic) next.topic = "موضوع را انتخاب کنید.";
-    if (message.trim().length < 12) next.message = "پیام باید دست‌کم ۱۲ نویسه باشد.";
+    if (message.trim().length < 12)
+      next.message = "پیام باید دست‌کم ۱۲ نویسه باشد.";
     return next;
   }
 
@@ -78,7 +81,8 @@ export function Contact() {
   return (
     <div id="contact" className="w-full text-start">
       <p className="mb-6 text-sm text-foreground/80">
-        این صفحه پیام را ذخیره نمی‌کند و سرور ندارد. بعد از نوشتن، متن کپی می‌شود تا در اینستاگرام بفرستید.
+        این صفحه پیام را ذخیره نمی‌کند و سرور ندارد. بعد از نوشتن، متن کپی
+        می‌شود تا در اینستاگرام بفرستید.
       </p>
 
       <form onSubmit={onSubmit} className="grid w-full gap-4" noValidate>
@@ -92,10 +96,23 @@ export function Contact() {
             error={errors.name}
           />
         </Field>
-        <Field label="سازمان" htmlFor="org" hint="اگر از طرف یک مدرسه، آزمایشگاه یا خانه نوآوری می‌نویسید">
-          <Input id="org" name="organization" value={org} onChange={(event) => setOrg(event.target.value)} />
+        <Field
+          label="سازمان"
+          htmlFor="org"
+          hint="اگر از طرف یک مدرسه، آزمایشگاه یا خانه نوآوری می‌نویسید"
+        >
+          <Input
+            id="org"
+            name="organization"
+            value={org}
+            onChange={(event) => setOrg(event.target.value)}
+          />
         </Field>
-        <Field label="ایمیل" htmlFor="email" hint="اختیاری است. اگر بنویسید، داخل متن کپی‌شده می‌آید تا جواب ممکن شود">
+        <Field
+          label="ایمیل"
+          htmlFor="email"
+          hint="اختیاری است. اگر بنویسید، داخل متن کپی‌شده می‌آید تا جواب ممکن شود"
+        >
           <Input
             id="email"
             name="email"
@@ -118,7 +135,9 @@ export function Contact() {
             options={topics}
             onChange={(event) => setTopic(event.target.value)}
           />
-          {errors.topic ? <p className="text-sm text-destructive">{errors.topic}</p> : null}
+          {errors.topic ? (
+            <p className="text-sm text-destructive">{errors.topic}</p>
+          ) : null}
         </Field>
         <Field label="پیام" htmlFor="message">
           <Textarea
@@ -130,7 +149,9 @@ export function Contact() {
             autoResize
             onChange={(event) => setMessage(event.target.value)}
           />
-          {errors.message ? <p className="text-sm text-destructive">{errors.message}</p> : null}
+          {errors.message ? (
+            <p className="text-sm text-destructive">{errors.message}</p>
+          ) : null}
         </Field>
         <Button type="submit" size="lg" className="w-full sm:w-auto">
           آماده‌کردن پیام
@@ -147,16 +168,29 @@ export function Contact() {
               className="max-w-lg"
               footer={
                 <>
-                  <Button onClick={copy}>{copied ? "کپی شد" : "کپی متن"}</Button>
-                  <ButtonLink href={instagramUrl} target="_blank" rel="noreferrer" variant="outline">
+                  <Button onClick={copy}>
+                    {copied ? "کپی شد" : "کپی متن"}
+                  </Button>
+                  <ButtonLink
+                    href={instagramUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    variant="outline"
+                  >
                     رفتن به اینستاگرام
                   </ButtonLink>
                 </>
               }
             >
-              <p className="whitespace-pre-wrap text-sm text-foreground">{composed}</p>
+              <p className="whitespace-pre-wrap text-sm text-foreground">
+                {composed}
+              </p>
               {copyError ? (
-                <Alert variant="destructive" title="کپی خودکار ممکن نشد" className="mt-4">
+                <Alert
+                  variant="destructive"
+                  title="کپی خودکار ممکن نشد"
+                  className="mt-4"
+                >
                   متن بالا را دستی انتخاب کنید و کپی بگیرید.
                 </Alert>
               ) : null}

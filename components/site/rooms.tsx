@@ -5,6 +5,7 @@ import {
 } from "@/components/site/constellation";
 import { Contact } from "@/components/site/contact";
 import { Logo } from "@/components/site/logo";
+import { MapRoom } from "@/components/site/map-room";
 import type { Leaf } from "@/lib/content";
 import { arrange, type Placed, type Room } from "@/lib/world";
 
@@ -12,6 +13,7 @@ function ariaFor(p: Placed) {
   const r = p.room;
   if (p.role === "home") return "خانه، بازگشت به گره مرکزی هزارتو";
   if (p.role === "parent") return `بازگشت به گره ${r.label}`;
+  if (r.kind === "map") return "نقشه، همه‌ی گره‌ها در یک نگاه";
   if (r.kind === "section") return `گره ${r.label}: ${r.section.summary}`;
   return `گره ${r.kind === "leaf" ? r.leaf.title : r.label}`;
 }
@@ -36,7 +38,6 @@ function useDots(room: Room) {
         ariaLabel: link.label,
         slot: free[i],
         tone: "child",
-        external: link.external,
       });
     });
     return { slots, dots };
@@ -146,9 +147,11 @@ export function RoomBody({ room, active }: { room: Room; active: boolean }) {
   const Heading = active ? "h1" : "p";
   const { slots, dots } = useDots(room);
 
+  if (room.kind === "map") return <MapRoom heading={Heading} />;
+
   if (room.kind === "hub") {
     return (
-      <div className="flex h-full flex-col pt-16 pb-12 short:pt-12">
+      <div className="flex h-full flex-col py-4 short:py-2">
         <Heading className="sr-only">
           هزارتو، شرکت فناوری و نوآوری شناخت. از گره مرکزی یکی از چهار راه را
           بروید: رویداد، محصول، درباره ما یا آموزش.
@@ -170,7 +173,7 @@ export function RoomBody({ room, active }: { room: Room; active: boolean }) {
 
   if (room.kind === "section") {
     return (
-      <div className="flex h-full flex-col pt-16 pb-12 short:pt-12">
+      <div className="flex h-full flex-col py-4 short:py-2">
         <div className="flex min-h-0 flex-1 px-2 py-2 sm:px-4">
           <Constellation
             label={`نقشه‌ی ${room.section.label}`}
@@ -192,7 +195,7 @@ export function RoomBody({ room, active }: { room: Room; active: boolean }) {
 
   const { leaf } = room;
   return (
-    <div className="flex h-full flex-col pt-16 pb-12 short:pt-12">
+    <div className="flex h-full flex-col py-4 short:py-2">
       <div className="room-scroll flex min-h-0 flex-1 flex-col overflow-y-auto px-2 py-2 sm:px-4">
         <Constellation
           label={`نقشه‌ی ${leaf.label}`}

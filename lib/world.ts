@@ -1,4 +1,9 @@
-import { sections, type Leaf, type Section, type SectionId } from "@/lib/content";
+import {
+  sections,
+  type Leaf,
+  type Section,
+  type SectionId,
+} from "@/lib/content";
 
 /**
  * The whole site is one map. Each page is a room on a grid; one unit is one viewport.
@@ -9,8 +14,24 @@ export type Vec = { x: number; y: number };
 
 export type Room =
   | { kind: "hub"; path: "/"; pos: Vec; label: string; short: string }
-  | { kind: "section"; path: string; pos: Vec; label: string; short: string; section: Section }
-  | { kind: "leaf"; path: string; pos: Vec; label: string; short: string; section: Section; leaf: Leaf };
+  | { kind: "map"; path: "/map"; pos: Vec; label: string; short: string }
+  | {
+      kind: "section";
+      path: string;
+      pos: Vec;
+      label: string;
+      short: string;
+      section: Section;
+    }
+  | {
+      kind: "leaf";
+      path: string;
+      pos: Vec;
+      label: string;
+      short: string;
+      section: Section;
+      leaf: Leaf;
+    };
 
 const sectionPos: Record<SectionId, Vec> = {
   events: { x: 0, y: -2 },
@@ -38,10 +59,26 @@ const shortLabels: Record<string, string> = {
   "events/hoosh": "نشست هوش",
 };
 
-export const hubRoom: Room = { kind: "hub", path: "/", pos: { x: 0, y: 0 }, label: "خانه", short: "خانه" };
+export const hubRoom: Room = {
+  kind: "hub",
+  path: "/",
+  pos: { x: 0, y: 0 },
+  label: "خانه",
+  short: "خانه",
+};
+
+/** On the hub's diagonal, so opening the map is a pan like any other step. */
+export const mapRoom: Room = {
+  kind: "map",
+  path: "/map",
+  pos: { x: -1, y: -1 },
+  label: "نقشه",
+  short: "نقشه",
+};
 
 export const rooms: Room[] = [
   hubRoom,
+  mapRoom,
   ...sections.flatMap((section): Room[] => [
     {
       kind: "section",
@@ -51,17 +88,15 @@ export const rooms: Room[] = [
       short: section.label,
       section,
     },
-    ...section.leaves.map(
-      (leaf): Room => ({
-        kind: "leaf",
-        path: `/${section.id}/${leaf.slug}`,
-        pos: leafPos[`${section.id}/${leaf.slug}`] ?? { x: 0, y: 0 },
-        label: leaf.label,
-        short: shortLabels[`${section.id}/${leaf.slug}`] ?? leaf.label,
-        section,
-        leaf,
-      }),
-    ),
+    ...section.leaves.map((leaf): Room => ({
+      kind: "leaf",
+      path: `/${section.id}/${leaf.slug}`,
+      pos: leafPos[`${section.id}/${leaf.slug}`] ?? { x: 0, y: 0 },
+      label: leaf.label,
+      short: shortLabels[`${section.id}/${leaf.slug}`] ?? leaf.label,
+      section,
+      leaf,
+    })),
   ]),
 ];
 
@@ -85,12 +120,18 @@ export function roomForPath(path: string): Room | undefined {
   return rooms.find((room) => room.path === clean);
 }
 
-export type Neighbor = { room: Room; role: "home" | "parent" | "child" | "sibling" };
+export type Neighbor = {
+  room: Room;
+  role: "home" | "parent" | "child" | "sibling";
+};
 
 export function neighborsOf(room: Room): Neighbor[] {
   if (room.kind === "hub") {
-    return rooms.filter((r) => r.kind === "section").map((r): Neighbor => ({ room: r, role: "child" }));
+    return rooms
+      .filter((r) => r.kind === "section" || r.kind === "map")
+      .map((r): Neighbor => ({ room: r, role: "child" }));
   }
+  if (room.kind === "map") return [];
   if (room.kind === "section") {
     return [
       { room: hubRoom, role: "home" },
@@ -99,12 +140,19 @@ export function neighborsOf(room: Room): Neighbor[] {
         .map((r): Neighbor => ({ room: r, role: "child" })),
     ];
   }
-  const parent = rooms.find((r) => r.kind === "section" && r.section.id === room.section.id)!;
+  const parent = rooms.find(
+    (r) => r.kind === "section" && r.section.id === room.section.id,
+  )!;
   return [
     { room: parent, role: "parent" },
     { room: hubRoom, role: "home" },
     ...rooms
-      .filter((r) => r.kind === "leaf" && r.section.id === room.section.id && r.path !== room.path)
+      .filter(
+        (r) =>
+          r.kind === "leaf" &&
+          r.section.id === room.section.id &&
+          r.path !== room.path,
+      )
       .map((r): Neighbor => ({ room: r, role: "sibling" })),
   ];
 }
@@ -113,11 +161,16 @@ export type Placed = Neighbor & { slot: number };
 
 /**
  * Even fan around a page's centre: never fewer than the four arms of a cross, slot 0 on top,
- * clockwise. `free` lists the slots no neighbour took, for a leaf's link circles.
+ * clockwise (eight on the hub). `free` lists the slots no neighbour took, for a leaf's link circles.
  */
 export type Arrangement = { slots: number; placed: Placed[]; free: number[] };
 
-const weight: Record<Neighbor["role"], number> = { parent: 4, home: 2, child: 1, sibling: 1 };
+const weight: Record<Neighbor["role"], number> = {
+  parent: 4,
+  home: 2,
+  child: 1,
+  sibling: 1,
+};
 
 /** Clockwise angle from straight up, in screen coordinates (y grows downward). */
 function bearing(from: Vec, to: Vec) {
@@ -136,10 +189,14 @@ function gap(a: number, b: number) {
  */
 export function arrange(room: Room, extra = 0): Arrangement {
   const neighbors = neighborsOf(room);
-  const slots = Math.max(4, neighbors.length + extra);
+  // The hub keeps its four sections on the cross; «نقشه» takes a diagonal of the doubled fan.
+  const slots = room.kind === "hub" ? 8 : Math.max(4, neighbors.length + extra);
   const step = (Math.PI * 2) / slots;
   const cost = neighbors.map((n) =>
-    Array.from({ length: slots }, (_, k) => weight[n.role] * gap(bearing(room.pos, n.room.pos), k * step)),
+    Array.from(
+      { length: slots },
+      (_, k) => weight[n.role] * gap(bearing(room.pos, n.room.pos), k * step),
+    ),
   );
 
   let best: number[] = [];
@@ -164,6 +221,12 @@ export function arrange(room: Room, extra = 0): Arrangement {
   };
   walk(0, 0);
 
-  const free = Array.from({ length: slots }, (_, k) => k).filter((k) => !best.includes(k));
-  return { slots, placed: neighbors.map((n, i) => ({ ...n, slot: best[i] })), free };
+  const free = Array.from({ length: slots }, (_, k) => k).filter(
+    (k) => !best.includes(k),
+  );
+  return {
+    slots,
+    placed: neighbors.map((n, i) => ({ ...n, slot: best[i] })),
+    free,
+  };
 }

@@ -1,4 +1,5 @@
-export type ClassValue = string | number | bigint | null | undefined | false | ClassValue[];
+export type ClassValue =
+  string | number | bigint | null | undefined | false | ClassValue[];
 
 /** Minimal class joiner (swap for clsx + tailwind-merge when the library grows). */
 export function cn(...inputs: ClassValue[]): string {
@@ -24,7 +25,9 @@ export function fa(value: string | number): string {
 
 /** Persian digits back to Latin (for parsing user input). */
 export function en(value: string): string {
-  return value.replace(/[۰-۹]/g, (d) => String(FA_DIGITS.indexOf(d))).replace(/[٠-٩]/g, (d) => String(d.charCodeAt(0) - 0x0660));
+  return value
+    .replace(/[۰-۹]/g, (d) => String(FA_DIGITS.indexOf(d)))
+    .replace(/[٠-٩]/g, (d) => String(d.charCodeAt(0) - 0x0660));
 }
 
 /** Thousands-separated Persian number: 12450000 -> ۱۲٬۴۵۰٬۰۰۰ */

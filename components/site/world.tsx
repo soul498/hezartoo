@@ -8,19 +8,11 @@ import {
   type CSSProperties,
   type ReactNode,
 } from "react";
-import { Footer, Header, type Crumb } from "@/components/site/header";
 import { RoomBody } from "@/components/site/rooms";
 import { WireField } from "@/components/site/wire-field";
 import { roomForPath, type Room } from "@/lib/world";
 
 const PAN_MS = 800;
-
-function trailOf(room: Room): Crumb[] {
-  if (room.kind === "hub") return [];
-  const section = { href: `/${room.section.id}`, label: room.section.label };
-  if (room.kind === "section") return [section];
-  return [section, { href: room.path, label: room.short }];
-}
 
 /**
  * The site is one map and the viewport is a camera over it. Navigating keeps the room you
@@ -72,7 +64,7 @@ export function World({ children }: { children: ReactNode }) {
   const shown = previous ? [previous, current] : [current];
 
   return (
-    <div className="graph-field fixed inset-0 isolate overflow-hidden">
+    <div className="fixed inset-0 isolate overflow-hidden bg-background">
       <WireField />
       <div
         data-world-camera=""
@@ -98,12 +90,6 @@ export function World({ children }: { children: ReactNode }) {
             </div>
           );
         })}
-      </div>
-      <div className="pointer-events-none absolute inset-x-0 top-0 z-20">
-        <Header trail={trailOf(current)} />
-      </div>
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20">
-        <Footer />
       </div>
       {children}
     </div>

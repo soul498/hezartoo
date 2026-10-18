@@ -149,12 +149,7 @@
 }
 /* --- vibefarsi:font-end --- */
 
-/* Node graph: a dot field, wires that draw in, dots that fade in and pulse. */
-.graph-field {
-  background-image: radial-gradient(color-mix(in oklch, var(--foreground) 14%, transparent) 1px, transparent 1.5px);
-  background-size: 24px 24px;
-}
-
+/* Node graph on the plain theme background: wires and circles fade in, child circles pulse. */
 @media (prefers-reduced-motion: no-preference) {
   /* Dashes on stretched non-scaling strokes render unevenly in Chrome, so wires fade instead of drawing. */
   .graph-wire,
